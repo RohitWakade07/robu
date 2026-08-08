@@ -1,0 +1,96 @@
+# Robu — Autonomous Inventory Management Platform
+
+An enterprise-grade orchestration platform for autonomous warehouse robotics, integrating with ROS2 for navigation, ArUco detection, and inventory operations.
+
+## Architecture
+
+- **Backend** — FastAPI orchestration layer (auth, inventory, task scheduling, WebSocket gateway, ROS2 bridge)
+- **Frontend** — React/TypeScript with three portals (Customer, Warehouse Intake, Robotics Command)
+- **Database** — PostgreSQL with SQLAlchemy ORM
+- **Cache** — Redis for async task coordination
+- **Robotics** — High-level task interface to existing ROS2 system (no low-level motor control)
+
+## Quick Start
+
+### Prerequisites
+
+- Docker & Docker Compose
+- Node.js 20+
+- Python 3.12+ (for local backend development)
+
+### 1. Start infrastructure
+
+```bash
+docker compose up -d postgres redis
+```
+
+### 2. Backend
+
+```bash
+cd backend
+pip install -r requirements.txt
+cp .env.example .env
+python -m scripts.seed
+uvicorn app.main:app --reload --port 8000
+```
+
+### 3. Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open http://localhost:5174
+
+### Demo Accounts
+
+| Role       | Email               | Password      |
+|------------|---------------------|---------------|
+| Admin      | admin@robu.io       | admin12345    |
+| Operator   | operator@robu.io    | operator123   |
+| Customer   | customer@robu.io    | customer123   |
+
+## API Documentation
+
+When running in development mode, visit http://localhost:8000/docs for the interactive OpenAPI documentation.
+
+## Project Structure
+
+```
+robu/
+├── backend/
+│   ├── app/
+│   │   ├── api/v1/          # REST API routers
+│   │   ├── core/            # Config, security, enums, deps
+│   │   ├── db/              # Database session & base models
+│   │   ├── models/          # SQLAlchemy ORM models
+│   │   ├── schemas/         # Pydantic request/response schemas
+│   │   ├── services/        # Business logic layer
+│   │   ├── repositories/    # Data access layer
+│   │   ├── ros2_bridge/     # ROS2 integration interface
+│   │   ├── websocket/       # Real-time event gateway
+│   │   └── main.py          # Application entry point
+│   ├── alembic/             # Database migrations
+│   └── scripts/             # Seed & utility scripts
+├── frontend/
+│   └── src/
+│       ├── api/             # API client
+│       ├── components/      # Reusable UI components
+│       ├── hooks/           # Custom React hooks
+│       ├── pages/           # Portal pages
+│       ├── stores/          # Zustand state management
+│       └── types/           # TypeScript interfaces
+└── docker-compose.yml
+```
+
+## Three Portals
+
+1. **Customer Portal** — Browse products, place orders, track robot execution
+2. **Warehouse Intake** — Register incoming shipments for autonomous robot processing
+3. **Robotics Command** — Fleet monitoring, inventory management, analytics dashboard
+
+## Development Roadmap
+
+See `agileMethodology.md` for the full sprint plan. Current status: **Sprint 1** (Foundation) complete.

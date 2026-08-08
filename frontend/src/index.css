@@ -1,0 +1,115 @@
+@import "tailwindcss";
+
+@theme {
+  /* Brand Palette */
+  --color-electric-blue: #2563eb;
+  --color-cyan: #06b6d4;
+  --color-amber: #f59e0b;
+  --color-success: #22c55e;
+  --color-error: #ef4444;
+
+  /* Neutral Palette */
+  --color-white: #ffffff;
+  --color-snow: #f8fafc;
+  --color-pewter: #94a3b8;
+  --color-steel-blue: #64748b;
+  --color-midnight: #0f172a;
+  --color-midnight-light: #111827;
+  --color-elevated: #1e293b;
+
+  /* Semantic Tokens for the OS */
+  --color-bg-primary: var(--color-midnight);
+  --color-bg-secondary: var(--color-midnight-light);
+  --color-bg-elevated: var(--color-elevated);
+  --color-bg-card: color-mix(in srgb, var(--color-steel-blue) 15%, transparent);
+  
+  --color-border-primary: var(--color-steel-blue);
+  
+  --color-text-primary: var(--color-snow);
+  --color-text-secondary: var(--color-pewter);
+  
+  --color-action-primary: var(--color-electric-blue);
+  --color-action-secondary: var(--color-cyan);
+
+  /* Robot State Semantics */
+  --color-robot-online: var(--color-cyan);
+  --color-robot-working: var(--color-electric-blue);
+  --color-robot-warning: var(--color-amber);
+  --color-robot-offline: var(--color-pewter);
+
+  --font-display: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-primary);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-cyan);
+}
+
+.glass-panel {
+  background: var(--color-bg-card);
+  backdrop-filter: blur(12px);
+  border: 1px solid color-mix(in srgb, var(--color-steel-blue) 30%, transparent);
+}
+
+.glow-cyan {
+  box-shadow: 0 0 20px color-mix(in srgb, var(--color-cyan) 15%, transparent);
+}
+
+.glow-electric {
+  box-shadow: 0 0 20px color-mix(in srgb, var(--color-electric-blue) 15%, transparent);
+}
+
+.grid-bg {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--color-steel-blue) 10%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-steel-blue) 10%, transparent) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.light {
+  --color-bg-primary: #f8fafc;
+  --color-bg-secondary: #f1f5f9;
+  --color-bg-elevated: #ffffff;
+  --color-bg-card: rgba(255, 255, 255, 0.8);
+  
+  --color-border-primary: #e2e8f0;
+  
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #64748b;
+}
+
+.light .glass-panel {
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+

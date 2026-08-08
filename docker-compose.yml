@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: robu-postgres
+    environment:
+      POSTGRES_USER: robu
+      POSTGRES_PASSWORD: robu_dev_password
+      POSTGRES_DB: robu_warehouse
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U robu -d robu_warehouse"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: robu-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: robu-backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://robu:robu_dev_password@postgres:5432/robu_warehouse
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: "${SECRET_KEY:?SECRET_KEY env var is required - generate with: openssl rand -hex 32}"
+      ENVIRONMENT: development
+      CORS_ORIGINS: http://localhost:5173,http://localhost:5174,http://localhost:3000
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    command: >
+      sh -c "PYTHONPATH=/app python scripts/seed.py;
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
+volumes:
+  postgres_data:
+  redis_data:
