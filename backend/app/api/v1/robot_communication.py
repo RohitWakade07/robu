@@ -20,8 +20,8 @@ from app.schemas.robot_communication import (
 
 router = APIRouter(prefix="/robot-communication", tags=["ROS 2 Robot Communication Pipeline"])
 
-# ROS Bridge Host URL (host.docker.internal accesses host from inside container)
-ROS_BRIDGE_URL = os.environ.get("ROS_BRIDGE_URL", "http://host.docker.internal:8005")
+# ROS Bridge Host URL (defaults to robot IP 192.168.1.12:8005)
+ROS_BRIDGE_URL = os.environ.get("ROS_BRIDGE_URL", "http://192.168.1.12:8005")
 
 
 async def proxy_ros_request(method: str, endpoint: str, payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
