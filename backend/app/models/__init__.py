@@ -5,8 +5,9 @@ from app.models.robot import Robot, RobotHealth
 from app.models.shipment import IncomingShipment, ShipmentItem
 from app.models.task import RobotEvent, RobotTask, TaskExecutionHistory
 from app.models.user import User
-from app.models.warehouse import ArUcoMarker, Product, ProductCategory, Rack, Shelf, WarehouseZone
+from app.models.warehouse import ArUcoMarker, Product, ProductCategory, Rack, Shelf, RackSlot, WarehouseZone
 from app.models.map import WarehouseMap
+from app.models.slotting import SlotAssignment, WarehouseNode, WarehouseEdge
 
 __all__ = [
     "User",
@@ -29,4 +30,8 @@ __all__ = [
     "ShipmentItem",
     "Notification",
     "WarehouseMap",
+    "RackSlot",
+    "SlotAssignment",
+    "WarehouseNode",
+    "WarehouseEdge",
 ]

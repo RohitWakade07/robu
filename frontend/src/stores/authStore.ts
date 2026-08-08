@@ -90,7 +90,10 @@ export const useAuthStore = create<AuthState>()(
       refreshAccessToken: async () => {
         const refreshToken =
           get().refreshToken || localStorage.getItem('refresh_token')
-        if (!refreshToken) return null
+        if (!refreshToken) {
+          get().logout()
+          return null
+        }
         try {
           const tokens = await api.auth.refresh(refreshToken)
           localStorage.setItem('access_token', tokens.access_token)
@@ -101,6 +104,10 @@ export const useAuthStore = create<AuthState>()(
           })
           return tokens.access_token
         } catch {
+          get().logout()
+          if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+            window.location.href = '/login'
+          }
           return null
         }
       },

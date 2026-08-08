@@ -188,6 +188,12 @@ export const api = {
   inventory: {
     list: () => request<import('../types').InventoryItem[]>('/shipments/inventory'), // Note: this is under /shipments prefix in warehouse.py
   },
+  slotting: {
+    analyze: () => request<{ status: string; demand_analysis: Record<string, unknown> }>('/slotting/analyze', { method: 'POST' }),
+    optimize: () => request<{ status: string; recommendations_generated: number }>('/slotting/optimize', { method: 'POST' }),
+    recommendations: () => request<{ id: string; product_id: string; slot_id: string; priority_score: number; slot_score: number; reason: string }[]>('/slotting/recommendations'),
+    reslot: () => request<{ status: string; tasks_generated: number }>('/slotting/reslot', { method: 'POST' }),
+  },
 }
 
 export { ApiError }

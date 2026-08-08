@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_user, require_roles
@@ -17,7 +18,11 @@ router = APIRouter(tags=["Customer Portal"])
 @router.get("/products", response_model=list[ProductResponse])
 async def list_products(db: Annotated[AsyncSession, Depends(get_db)]):
     service = ProductService(db)
-    return await service.list_products()
+    try:
+        return await service.list_products()
+    except SQLAlchemyError:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail="Database error processing request")
 
 
 @router.post("/products", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
@@ -27,7 +32,14 @@ async def create_product(
     _: Annotated[User, Depends(require_roles(UserRole.ADMINISTRATOR))],
 ):
     service = ProductService(db)
-    return await service.create_product(data)
+    try:
+        return await service.create_product(data)
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=409, detail="Conflict / constraint violation")
+    except SQLAlchemyError:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail="Database error processing request")
 
 
 @router.post("/orders", response_model=OrderResponse, status_code=status.HTTP_201_CREATED)
@@ -41,6 +53,12 @@ async def create_order(
         return await service.create_order(current_user.id, data)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=409, detail="Conflict / constraint violation")
+    except SQLAlchemyError:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail="Database error processing request")
 
 
 @router.get("/orders", response_model=list[OrderResponse])
@@ -50,4 +68,8 @@ async def list_orders(
 ):
     service = OrderService(db)
     customer_id = None if current_user.role == UserRole.ADMINISTRATOR.value else current_user.id
-    return await service.list_orders(customer_id)
+    try:
+        return await service.list_orders(customer_id)
+    except SQLAlchemyError:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail="Database error processing request")

@@ -7,6 +7,7 @@ from app.db.base import Base, SoftDeleteMixin, TimestampMixin, UUIDPrimaryKeyMix
 
 if TYPE_CHECKING:
     from app.models.inventory import InventoryItem
+    from app.models.slotting import SlotAssignment
 
 
 class ProductCategory(Base, UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin):
@@ -27,9 +28,17 @@ class Product(Base, UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin):
     category_id: Mapped[Optional[str]] = mapped_column(ForeignKey("product_categories.id"), nullable=True)
     unit_price: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
     weight_kg: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    height: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    width: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    depth: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    volume: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    abc_class: Mapped[Optional[str]] = mapped_column(String(1), nullable=True)
+    xyz_class: Mapped[Optional[str]] = mapped_column(String(1), nullable=True)
+    priority_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
 
     category: Mapped[Optional["ProductCategory"]] = relationship(back_populates="products")
     inventory_items: Mapped[List["InventoryItem"]] = relationship(back_populates="product")
+    slot_assignments: Mapped[List["SlotAssignment"]] = relationship(back_populates="product")
 
 
 class ArUcoMarker(Base, UUIDPrimaryKeyMixin, TimestampMixin):
@@ -63,6 +72,7 @@ class Rack(Base, UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin):
 
     zone: Mapped["WarehouseZone"] = relationship(back_populates="racks")
     shelves: Mapped[List["Shelf"]] = relationship(back_populates="rack")
+    slots: Mapped[List["RackSlot"]] = relationship(back_populates="rack")
 
 
 class Shelf(Base, UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin):
@@ -75,3 +85,25 @@ class Shelf(Base, UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin):
 
     rack: Mapped["Rack"] = relationship(back_populates="shelves")
     inventory_items: Mapped[List["InventoryItem"]] = relationship(back_populates="shelf")
+
+
+class RackSlot(Base, UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin):
+    __tablename__ = "rack_slots"
+
+    rack_id: Mapped[str] = mapped_column(ForeignKey("racks.id"), nullable=False)
+    zone_id: Mapped[str] = mapped_column(ForeignKey("warehouse_zones.id"), nullable=False)
+    x: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    y: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    z: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    max_weight: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    max_volume: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    available_height: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    available_width: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    available_depth: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    robot_accessible: Mapped[bool] = mapped_column(default=True, nullable=False)
+    golden_zone_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    shipping_distance: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+
+    rack: Mapped["Rack"] = relationship(back_populates="slots")
+    zone: Mapped["WarehouseZone"] = relationship()
+    assignments: Mapped[List["SlotAssignment"]] = relationship(back_populates="slot")

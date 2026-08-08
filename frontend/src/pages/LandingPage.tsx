@@ -29,9 +29,14 @@ export function LandingPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="flex flex-col items-center z-10"
+        className="flex flex-col items-center z-10 text-center"
       >
-        <div className="h-[200px] flex items-center justify-center mb-8 w-[80vw] max-w-4xl">
+        {/* Hero Large Logo */}
+        <div className="mb-4 h-32 w-32 rounded-2xl bg-action-primary/10 border border-action-primary/30 flex items-center justify-center p-4 shadow-2xl glow-electric">
+          <img src={logoSrc} alt="Robu Logo" className="w-full h-full object-contain" />
+        </div>
+
+        <div className="h-[180px] flex items-center justify-center mb-6 w-[80vw] max-w-4xl">
           <GooeyText
             texts={["Navigation.", "Intelligence.", "Automation."]}
             morphTime={1.5}

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { AlertOctagon, Battery, Bot, Navigation, Power, Activity } from 'lucide-react'
+import { AlertOctagon, Battery, Navigation, Activity } from 'lucide-react'
 import { api } from '../../api/client'
 import { useWebSocket } from '../../hooks/useWebSocket'
 import { Button, StatusBadge, LoadingSpinner } from '../../components/ui'

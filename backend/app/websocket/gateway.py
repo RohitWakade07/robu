@@ -1,8 +1,10 @@
 import json
 import logging
-from typing import Dict, Set
+from typing import Dict, Optional, Set
 
-from fastapi import WebSocket, WebSocketDisconnect
+from fastapi import Query, WebSocket, WebSocketDisconnect
+
+from app.core.security import decode_token
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +53,14 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
-async def websocket_endpoint(websocket: WebSocket) -> None:
+async def websocket_endpoint(websocket: WebSocket, token: Optional[str] = Query(None)) -> None:
+    if token:
+        try:
+            decode_token(token)
+        except ValueError:
+            await websocket.close(code=4401)
+            return
+
     await manager.connect(websocket)
     try:
         while True:
@@ -70,7 +79,6 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
                         logger.info("Registered robot %s for directed messaging", robot_id)
                 elif msg_type == "robot_command":
                     # Echo command to the whole network for now
-                    # In production this would send directly to the specific robot via ROS2 bridge
                     await manager.broadcast("robot_command", payload)
             except json.JSONDecodeError:
                 logger.warning("Received invalid JSON on websocket: %s", data_str)

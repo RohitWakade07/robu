@@ -1,14 +1,18 @@
 import json
+import logging
 from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import select, update
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.enums import RobotStatus
 from app.models.robot import Robot, RobotHealth
 from app.schemas.robot import RobotCreate, RobotResponse, RobotHealthResponse
 from app.websocket.gateway import manager
+
+logger = logging.getLogger(__name__)
 
 
 class RobotService:
@@ -17,7 +21,10 @@ class RobotService:
 
     async def list_robots(self) -> list[RobotResponse]:
         result = await self.db.execute(
-            select(Robot).where(Robot.deleted_at.is_(None)).order_by(Robot.name)
+            select(Robot)
+            .options(selectinload(Robot.health))
+            .where(Robot.deleted_at.is_(None))
+            .order_by(Robot.name)
         )
         return [RobotResponse.model_validate(r) for r in result.scalars().all()]
 
@@ -34,7 +41,7 @@ class RobotService:
         
         await self.db.flush()
         
-        query = select(Robot).where(Robot.id == robot.id)
+        query = select(Robot).options(selectinload(Robot.health)).where(Robot.id == robot.id)
         result = await self.db.execute(query)
         robot_refreshed = result.scalar_one()
         return RobotResponse.model_validate(robot_refreshed)
@@ -75,16 +82,9 @@ class RobotService:
         )
 
     async def send_command(self, robot_id: str, command: str, payload: dict):
-        # Here we would normally interface with ROS2 (e.g. via ros2_bridge)
-        # For now, we simulate dispatch and broadcast
         logger_msg = f"Sending command {command} to robot {robot_id} with payload {payload}"
-        print(logger_msg) # Replace with proper logging if needed
+        logger.info(logger_msg)
         
-        await manager.broadcast(
-            "robot_command",
-            {
-                "robot_id": robot_id,
-                "command": command,
-                "payload": payload,
-            }
-        )
+        sent = await manager.send_to_robot(robot_id, "robot_command", {"command": command, "payload": payload})
+        if not sent:
+            logger.warning("Robot %s not connected; command dropped", robot_id)

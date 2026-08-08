@@ -48,6 +48,9 @@ class Settings(BaseSettings):
                 # In staging/production this is a hard error, not just a warning
                 raise ValueError(msg)
 
+        if self.database_url.endswith("robu_dev_password@localhost:5432/robu_warehouse") and self.environment != "development":
+            raise ValueError("DATABASE_URL is still the dev default — set a real value in production")
+
     @property
     def cors_origins_list(self) -> List[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]

@@ -5,7 +5,7 @@
   --color-electric-blue: #2563eb;
   --color-cyan: #06b6d4;
   --color-amber: #f59e0b;
-  --color-success: #22c55e;
+  --color-success: #10b981;
   --color-error: #ef4444;
 
   /* Neutral Palette */
@@ -13,7 +13,7 @@
   --color-snow: #f8fafc;
   --color-pewter: #94a3b8;
   --color-steel-blue: #64748b;
-  --color-midnight: #0f172a;
+  --color-midnight: #0b0f19;
   --color-midnight-light: #111827;
   --color-elevated: #1e293b;
 
@@ -21,9 +21,10 @@
   --color-bg-primary: var(--color-midnight);
   --color-bg-secondary: var(--color-midnight-light);
   --color-bg-elevated: var(--color-elevated);
-  --color-bg-card: color-mix(in srgb, var(--color-steel-blue) 15%, transparent);
+  --color-bg-card: #111827;
   
-  --color-border-primary: var(--color-steel-blue);
+  --color-border-primary: #1f2937;
+  --color-border-hover: #374151;
   
   --color-text-primary: var(--color-snow);
   --color-text-secondary: var(--color-pewter);
@@ -37,7 +38,7 @@
   --color-robot-warning: var(--color-amber);
   --color-robot-offline: var(--color-pewter);
 
-  --font-display: "Inter", system-ui, sans-serif;
+  --font-display: "Inter", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", "Fira Code", monospace;
 }
 
@@ -78,38 +79,37 @@ body {
 
 .glass-panel {
   background: var(--color-bg-card);
-  backdrop-filter: blur(12px);
-  border: 1px solid color-mix(in srgb, var(--color-steel-blue) 30%, transparent);
+  border: 1px solid var(--color-border-primary);
 }
 
 .glow-cyan {
-  box-shadow: 0 0 20px color-mix(in srgb, var(--color-cyan) 15%, transparent);
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.15);
 }
 
 .glow-electric {
-  box-shadow: 0 0 20px color-mix(in srgb, var(--color-electric-blue) 15%, transparent);
+  box-shadow: 0 0 15px rgba(37, 99, 235, 0.15);
 }
 
 .grid-bg {
   background-image:
-    linear-gradient(color-mix(in srgb, var(--color-steel-blue) 10%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--color-steel-blue) 10%, transparent) 1px, transparent 1px);
-  background-size: 40px 40px;
+    linear-gradient(rgba(31, 41, 55, 0.4) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(31, 41, 55, 0.4) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
 
 .light {
   --color-bg-primary: #f8fafc;
   --color-bg-secondary: #f1f5f9;
   --color-bg-elevated: #ffffff;
-  --color-bg-card: rgba(255, 255, 255, 0.8);
+  --color-bg-card: #ffffff;
   
   --color-border-primary: #e2e8f0;
+  --color-border-hover: #cbd5e1;
   
   --color-text-primary: #0f172a;
   --color-text-secondary: #64748b;
 }
 
 .light .glass-panel {
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  border: 1px solid #e2e8f0;
 }
-

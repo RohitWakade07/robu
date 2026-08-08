@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, List, Optional
 
-from sqlalchemy import ForeignKey, Integer, String, Text
+from sqlalchemy import Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.enums import TaskStatus, TaskType
@@ -8,6 +8,7 @@ from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 
 if TYPE_CHECKING:
     from app.models.robot import Robot
+    from app.models.warehouse import Product, RackSlot
 
 
 class RobotTask(Base, UUIDPrimaryKeyMixin, TimestampMixin):
@@ -21,6 +22,13 @@ class RobotTask(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     reference_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
     payload: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    
+    product_id: Mapped[Optional[str]] = mapped_column(ForeignKey("products.id"), nullable=True)
+    source_slot: Mapped[Optional[str]] = mapped_column(ForeignKey("rack_slots.id"), nullable=True)
+    destination_slot: Mapped[Optional[str]] = mapped_column(ForeignKey("rack_slots.id"), nullable=True)
+    estimated_distance: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    estimated_time: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     started_at: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     completed_at: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
 

@@ -548,13 +548,6 @@ export function SpatialScoringPage() {
     fontSize: '0.6rem', fontWeight: 700, color: '#94a3b8',
     textTransform: 'uppercase', letterSpacing: '0.06em',
   }
-  const selectStyle: React.CSSProperties = {
-    background: '#ffffff', border: '1.5px solid #e2e8f0', color: '#334155',
-    borderRadius: 6, padding: '0.35rem 0.5rem', fontSize: '0.78rem',
-    fontWeight: 500, outline: 'none', width: '100%',
-    transition: 'border-color 0.15s',
-  }
-  const inputStyle: React.CSSProperties = { ...selectStyle }
   const dot = (color: string): React.CSSProperties => ({
     display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0,
   })
@@ -789,7 +782,7 @@ export function SpatialScoringPage() {
                 if (manifestRef.current) {
                   manifestRef.current.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:#94a3b8;font-size:0.85rem;">No packages ingested yet.</td></tr>`
                 }
-                placementHistory = []
+                placementHistoryRef.current = []
                 showToast('Manifest cleared', 'success')
               }} style={{ fontSize: '0.65rem', color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
                 Clear Log

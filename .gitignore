@@ -89,3 +89,9 @@ cover/
 
 # Vite
 vite.config.ts.timestamp-*
+
+# Temp Scan Scripts
+scan.py
+scan_results.json
+tree.txt
+

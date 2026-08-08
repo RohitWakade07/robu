@@ -22,6 +22,8 @@ export interface Product {
   category_id?: string
   unit_price: number
   weight_kg?: number
+  abc_class?: string
+  xyz_class?: string
   created_at: string
 }
 

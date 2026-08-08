@@ -9,6 +9,7 @@ from app.core.config import get_settings
 from app.core.logging import configure_logging
 from app.core.middleware import ErrorLoggingMiddleware
 from app.db.base import Base
+import app.models  # noqa: F401
 from app.db.session import engine
 from app.websocket.gateway import websocket_endpoint
 
