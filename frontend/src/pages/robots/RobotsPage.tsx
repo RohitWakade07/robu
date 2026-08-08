@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Bot } from 'lucide-react'
+import { Bot, Camera, Video, Radio } from 'lucide-react'
 import { api } from '../../api/client'
 import { Card, StatusBadge, LoadingSpinner, EmptyState, Button, Modal, Input } from '../../components/ui'
 
@@ -10,6 +10,7 @@ export function RobotsPage() {
   const [name, setName] = useState('')
   const [model, setModel] = useState('AMR-V2')
   const [serialNumber, setSerialNumber] = useState('')
+  const [isCameraActive, setIsCameraActive] = useState(true)
 
   const { data: robots, isLoading } = useQuery({
     queryKey: ['robots'],
@@ -45,6 +46,53 @@ export function RobotsPage() {
           Register AMR Robot
         </Button>
       </div>
+
+      {/* Live Camera Stream Viewer Card */}
+      <Card className="p-4 border border-cyan/30 bg-bg-surface/80">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Video className="h-4 w-4 text-cyan" />
+            <h3 className="text-sm font-bold text-text-primary">Live AMR Camera Feed (192.168.1.12:8005)</h3>
+            <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded bg-success/10 text-success border border-success/30">
+              <Radio className="h-3 w-3 animate-pulse" /> LIVE STREAM
+            </span>
+          </div>
+          <Button
+            variant="outline"
+            className="text-xs py-1"
+            onClick={() => setIsCameraActive(!isCameraActive)}
+          >
+            <Camera className="h-3.5 w-3.5 mr-1" />
+            {isCameraActive ? 'Pause Stream' : 'Resume Stream'}
+          </Button>
+        </div>
+
+        <div className="relative aspect-video max-h-[380px] w-full overflow-hidden rounded-lg bg-black border border-border-primary flex items-center justify-center">
+          {isCameraActive ? (
+            <img
+              src="http://localhost:8000/api/v1/robot-communication/video_feed"
+              alt="AMR Live ROS 2 Camera Stream"
+              className="h-full w-full object-contain"
+              onError={(e) => {
+                // Display friendly fallback if robot stream is currently offline
+                (e.target as HTMLImageElement).style.display = 'none'
+                const fallback = (e.target as HTMLImageElement).nextElementSibling
+                if (fallback) fallback.classList.remove('hidden')
+              }}
+            />
+          ) : null}
+
+          <div className={`text-center space-y-2 p-6 ${isCameraActive ? 'hidden' : ''}`}>
+            <Camera className="h-10 w-10 text-text-secondary mx-auto animate-pulse" />
+            <p className="text-xs font-mono text-text-secondary">
+              {isCameraActive ? 'Waiting for camera frame stream from 192.168.1.12:8005...' : 'Camera feed paused by operator.'}
+            </p>
+            <p className="text-[10px] text-text-secondary font-mono">
+              ROS Topic: /camera/image_raw (sensor_msgs/Image)
+            </p>
+          </div>
+        </div>
+      </Card>
 
       {!robots?.length ? (
         <EmptyState title="No Robots in Fleet" description="Register robots to begin autonomous operations." />
