@@ -37,6 +37,7 @@ except ImportError:
 
 
 from fastapi import FastAPI, HTTPException, status
+from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -300,6 +301,32 @@ def list_recent_events():
     if ros_node is None:
         raise HTTPException(status_code=500, detail="ROS 2 Bridge Node is offline")
     return ros_node.recent_events
+
+
+latest_frame_bytes: Optional[bytes] = None
+
+
+@app.get("/video_feed")
+@app.get("/api/v1/robot-communication/video_feed")
+def get_video_feed():
+    """
+    Live MJPEG Camera Video Stream Endpoint for WMS Dashboard.
+    """
+    def generate_mjpeg():
+        while True:
+            if latest_frame_bytes:
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + latest_frame_bytes + b'\r\n')
+            else:
+                # Placeholder frame when camera is idle
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + b'' + b'\r\n')
+            time.sleep(0.04)
+
+    return StreamingResponse(
+        generate_mjpeg(),
+        media_type="multipart/x-mixed-replace; boundary=frame"
+    )
 
 
 @app.get("/api/v1/robot-communication/health")

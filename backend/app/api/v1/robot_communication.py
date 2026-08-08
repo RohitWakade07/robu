@@ -213,6 +213,29 @@ async def list_recent_events():
     return await proxy_ros_request("GET", "/api/v1/robot-communication/events")
 
 
+from fastapi.responses import StreamingResponse
+
+@router.get("/video_feed")
+async def get_robot_video_feed():
+    """
+    Proxy Live MJPEG Camera Feed from Robot ROS Bridge to WMS Frontend.
+    """
+    async def stream_generator():
+        url = f"{ROS_BRIDGE_URL}/video_feed"
+        async with httpx.AsyncClient(timeout=None) as client:
+            try:
+                async with client.stream("GET", url) as response:
+                    async for chunk in response.aiter_bytes():
+                        yield chunk
+            except Exception:
+                yield b""
+
+    return StreamingResponse(
+        stream_generator(),
+        media_type="multipart/x-mixed-replace; boundary=frame"
+    )
+
+
 @router.get("/health")
 async def check_communication_health():
     res = await proxy_ros_request("GET", "/api/v1/robot-communication/health")
