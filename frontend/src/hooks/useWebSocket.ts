@@ -23,8 +23,10 @@ export function useWebSocket(options: WebSocketOptions = {}) {
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return
 
+    const token = localStorage.getItem('access_token') || ''
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    const ws = new WebSocket(`${protocol}//${window.location.hostname}:8000/ws`)
+    const wsUrl = `${protocol}//${window.location.hostname}:8000/ws${token ? `?token=${encodeURIComponent(token)}` : ''}`
+    const ws = new WebSocket(wsUrl)
 
     ws.onopen = () => {
       setIsConnected(true)
