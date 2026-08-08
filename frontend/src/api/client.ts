@@ -194,6 +194,20 @@ export const api = {
     recommendations: () => request<{ id: string; product_id: string; slot_id: string; priority_score: number; slot_score: number; reason: string }[]>('/slotting/recommendations'),
     reslot: () => request<{ status: string; tasks_generated: number }>('/slotting/reslot', { method: 'POST' }),
   },
+  robotCommunication: {
+    submitTask: (data: { task_type?: string; source_location_id: string; destination_location_id: string; priority?: number; robot_id?: string }) =>
+      request<{ status: string; task_id: string; message_id: string }>('/robot-communication/tasks', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    getTask: (taskId: string) => request<{ task_id: string; status: string; ros_bridge_state?: Record<string, unknown> }>(`/robot-communication/tasks/${taskId}`),
+    cancelTask: (taskId: string) => request(`/robot-communication/tasks/${taskId}/cancel`, { method: 'POST' }),
+    pauseTask: (taskId: string) => request(`/robot-communication/tasks/${taskId}/pause`, { method: 'POST' }),
+    resumeTask: (taskId: string) => request(`/robot-communication/tasks/${taskId}/resume`, { method: 'POST' }),
+    listRobots: () => request<{ robot_id: string; status: string; battery: number; position: { x: number; y: number; yaw: number }; current_task_id?: string; last_seen?: string }[]>('/robot-communication/robots'),
+    listEvents: () => request<{ message_id: string; message_type: string; timestamp: string; task_id?: string; payload?: Record<string, unknown> }[]>('/robot-communication/events'),
+    health: () => request<{ status: string; ros_initialized: boolean; active_robots: number; pending_tasks: number; node_name: string }>('/robot-communication/health'),
+  },
 }
 
 export { ApiError }
