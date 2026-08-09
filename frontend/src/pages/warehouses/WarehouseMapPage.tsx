@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Map, Upload, CheckCircle2, FileCode, Image as ImageIcon, X } from 'lucide-react'
 import { api } from '../../api/client'
 import { Card, LoadingSpinner, Button, Modal, Input } from '../../components/ui'
+import { drawMapToCanvas } from '../../utils/mapRenderer'
 
 export function WarehouseMapPage() {
   const queryClient = useQueryClient()
@@ -161,24 +162,18 @@ export function WarehouseMapPage() {
             )}
           </div>
 
-          <div className="h-96 bg-[#020617] rounded-xl border border-border-primary flex items-center justify-center p-4 relative overflow-hidden grid-bg">
-            {mapData?.pgm_data && mapData.pgm_data.startsWith('data:image') ? (
-              <img
-                src={mapData.pgm_data}
-                alt="2D Occupancy Grid Map"
-                className="max-h-full max-w-full object-contain opacity-90 filter drop-shadow-[0_0_15px_rgba(6,182,212,0.3)]"
-              />
-            ) : (
-              <div className="text-center space-y-2">
-                <Map className="h-12 w-12 text-cyan opacity-40 mx-auto animate-pulse" />
-                <p className="text-xs font-mono text-text-secondary">
-                  Map Label: {mapData?.label || 'Primary Warehouse SLAM Grid'}
-                </p>
-                <p className="text-xs font-mono text-cyan">
-                  Dimensions: {mapData?.width_px || 800}px × {mapData?.height_px || 600}px ({mapData?.resolution || 0.05} m/px)
-                </p>
-              </div>
-            )}
+          <div className="h-96 bg-[#020617] rounded-xl border border-border-primary flex items-center justify-center p-2 relative overflow-hidden grid-bg">
+            <canvas
+              ref={(canvas) => {
+                if (canvas) {
+                  canvas.width = canvas.parentElement?.clientWidth || 800
+                  canvas.height = canvas.parentElement?.clientHeight || 400
+                  const ctx = canvas.getContext('2d')
+                  if (ctx) drawMapToCanvas(ctx, canvas.width, canvas.height, mapData)
+                }
+              }}
+              className="w-full h-full object-contain rounded-lg"
+            />
           </div>
         </Card>
 

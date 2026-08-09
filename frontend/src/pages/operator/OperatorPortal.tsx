@@ -4,6 +4,7 @@ import { AlertOctagon, Battery, Navigation, Activity } from 'lucide-react'
 import { api } from '../../api/client'
 import { useWebSocket } from '../../hooks/useWebSocket'
 import { Button, StatusBadge, LoadingSpinner } from '../../components/ui'
+import { drawMapToCanvas } from '../../utils/mapRenderer'
 
 export function OperatorPortal() {
   const { data: mapData, isLoading: mapLoading } = useQuery({
@@ -41,33 +42,8 @@ export function OperatorPortal() {
     let animationFrameId: number
 
     const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      
-      // Draw grid as fallback if no map
-      ctx.strokeStyle = '#334155' // border-primary
-      ctx.lineWidth = 1
-      for(let x=0; x<canvas.width; x+=50) {
-        ctx.beginPath()
-        ctx.moveTo(x, 0)
-        ctx.lineTo(x, canvas.height)
-        ctx.stroke()
-      }
-      for(let y=0; y<canvas.height; y+=50) {
-        ctx.beginPath()
-        ctx.moveTo(0, y)
-        ctx.lineTo(canvas.width, y)
-        ctx.stroke()
-      }
-
-      // Draw map if available (placeholder logic, assuming we can parse or draw the pgm data)
-      // If we had a base64 png we could just drawImage. We'll skip complex PGM rendering for now.
-      if (mapData?.pgm_data) {
-          ctx.fillStyle = 'rgba(14, 165, 233, 0.1)' // cyan tint
-          ctx.fillRect(0,0, canvas.width, canvas.height)
-          ctx.fillStyle = '#94a3b8' // text-secondary
-          ctx.font = '14px monospace'
-          ctx.fillText(`Map: ${mapData.label} (${mapData.width_px}x${mapData.height_px})`, 20, 30)
-      }
+      // Draw 2D SLAM Occupancy Grid Map background
+      drawMapToCanvas(ctx, canvas.width, canvas.height, mapData)
 
       // Draw robots
       Object.entries(robotPositions).forEach(([id, pos]) => {
