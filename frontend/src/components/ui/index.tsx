@@ -251,10 +251,11 @@ export function DataTable<T extends Record<string, unknown>>({
   emptyDescription = 'There are currently no items to display.',
 }: DataTableProps<T>) {
   const [currentPage, setCurrentPage] = useState(1)
-  const totalPages = Math.ceil(data.length / pageSize) || 1
-  const paginatedData = data.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+  const safeData = Array.isArray(data) ? data : []
+  const totalPages = Math.ceil(safeData.length / pageSize) || 1
+  const paginatedData = safeData.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
-  if (data.length === 0) {
+  if (safeData.length === 0) {
     return <EmptyState title={emptyTitle} description={emptyDescription} />
   }
 

@@ -181,7 +181,7 @@ export function RobotTasksPage() {
             Live ROS 2 Event & Task Lifecycle Log
           </h3>
         </div>
-        <DataTable columns={columns} data={eventsData as unknown as Record<string, unknown>[]} />
+        <DataTable columns={columns} data={(Array.isArray(eventsData) ? eventsData : []) as unknown as Record<string, unknown>[]} />
       </Card>
 
       {/* Dispatch Mission Modal */}

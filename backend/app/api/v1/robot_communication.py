@@ -302,7 +302,10 @@ async def get_robot_state(robot_id: str):
 
 @router.get("/events")
 async def list_recent_events():
-    return await proxy_ros_request("GET", "/api/v1/robot-communication/events")
+    res = await proxy_ros_request("GET", "/api/v1/robot-communication/events")
+    if isinstance(res, list):
+        return res
+    return []
 
 
 from fastapi.responses import StreamingResponse
