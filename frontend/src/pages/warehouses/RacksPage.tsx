@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Edit3, Trash2, Zap, Boxes, ExternalLink, RefreshCw, Map, Layers, CheckCircle2 } from 'lucide-react'
 import { api } from '../../api/client'
 import { Card, DataTable, type Column, Button, Modal, Input, Select } from '../../components/ui'
+import { detectRacksFromMap } from '../../utils/mapRenderer'
 
 interface RackItem extends Record<string, unknown> {
   id: string
@@ -23,22 +24,22 @@ export function RacksPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<RackItem | null>(null)
 
-  // Map-adaptable input state (No need to enter number of racks - identified from SLAM map!)
+  // Map-adaptable input state
   const [code, setCode] = useState('')
-  const [zone, setZone] = useState('Golden Zone')
+  const [zone, setZone] = useState('Golden Fast-Picking')
   const [shelvesCount, setShelvesCount] = useState('4')
   const [slotsPerShelf, setSlotsPerShelf] = useState('4')
   const [maxWeight, setMaxWeight] = useState('500 kg')
   const [status, setStatus] = useState('operational')
 
-  // Fetch active SLAM map data to automatically identify rack count
+  // Fetch active SLAM map data to automatically identify real-time rack count & structure
   const { data: mapData } = useQuery({
     queryKey: ['map', 'current'],
     queryFn: api.map.getCurrent
   })
 
-  // Auto-calculated detected racks from active map dimensions
-  const detectedRacksCount = mapData?.width_px ? Math.max(8, Math.floor((mapData.width_px * mapData.height_px) / 30000)) : 16
+  // Detect real-time racks from active map (e.g. 6 detected racks for uploaded PGM map)
+  const mapAnalysis = detectRacksFromMap(mapData)
 
   const { data: recommendations } = useQuery({
     queryKey: ['slotting-recommendations'],
@@ -52,16 +53,30 @@ export function RacksPage() {
     },
   })
 
-  const [racks, setRacks] = useState<RackItem[]>([
-    { id: 'r-1', code: 'RACK-A01', zone: 'Golden Fast-Picking', levels: 4, slots: 16, occupiedSlots: 14, slotScore: 982, assignedSkus: 'SKU-1001, SKU-1004', maxWeight: '500 kg', status: 'operational' },
-    { id: 'r-2', code: 'RACK-A02', zone: 'Golden Fast-Picking', levels: 4, slots: 16, occupiedSlots: 12, slotScore: 940, assignedSkus: 'SKU-1002, SKU-1008', maxWeight: '500 kg', status: 'operational' },
-    { id: 'r-3', code: 'RACK-B01', zone: 'Cold Storage B', levels: 3, slots: 12, occupiedSlots: 5, slotScore: 810, assignedSkus: 'SKU-1003 (Bio-Cold)', maxWeight: '300 kg', status: 'operational' },
-    { id: 'r-4', code: 'RACK-C01', zone: 'Reserve Bulk C', levels: 5, slots: 20, occupiedSlots: 18, slotScore: 765, assignedSkus: 'SKU-1005, SKU-1010', maxWeight: '1000 kg', status: 'operational' },
-  ])
+  // Dynamic racks state initialized from map analysis (6 detected racks)
+  const [racks, setRacks] = useState<RackItem[]>([])
+
+  useEffect(() => {
+    if (mapAnalysis && mapAnalysis.racks) {
+      const liveRacks: RackItem[] = mapAnalysis.racks.map((r, i) => ({
+        id: `r-${i + 1}`,
+        code: r.code,
+        zone: r.zone,
+        levels: r.levels,
+        slots: r.slots,
+        occupiedSlots: r.occupiedSlots,
+        slotScore: 980 - i * 35,
+        assignedSkus: i % 2 === 0 ? `SKU-100${i + 1}, SKU-100${i + 2}` : `SKU-100${i + 3}`,
+        maxWeight: '500 kg',
+        status: 'operational'
+      }))
+      setRacks(liveRacks)
+    }
+  }, [mapData])
 
   const resetForm = () => {
     setCode('')
-    setZone('Golden Zone')
+    setZone('Golden Fast-Picking')
     setShelvesCount('4')
     setSlotsPerShelf('4')
     setMaxWeight('500 kg')
@@ -152,8 +167,8 @@ export function RacksPage() {
       header: 'Shelves / Levels',
       accessorKey: 'levels',
       cell: (row) => (
-        <div className="flex items-center gap-1 text-xs font-mono text-text-primary">
-          <Layers className="h-3.5 w-3.5 text-cyan" />
+        <div className="flex items-center gap-1.5 text-xs font-mono text-cyan font-semibold">
+          <Layers className="h-4 w-4 text-cyan" />
           <span>{row.levels} Shelves</span>
         </div>
       ),
@@ -231,7 +246,7 @@ export function RacksPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-text-primary tracking-tight">Racks & Shelves Management</h1>
-          <p className="text-xs text-text-secondary">Adaptable storage rack layouts automatically detected from SLAM Map</p>
+          <p className="text-xs text-text-secondary">Adaptable storage rack layouts dynamically synced with SLAM Map</p>
         </div>
         <div className="flex items-center gap-3">
           <Button
@@ -248,7 +263,7 @@ export function RacksPage() {
         </div>
       </div>
 
-      {/* Map Adaptive Banner */}
+      {/* Real-time Map Adaptive Banner */}
       <Card className="p-4 border border-cyan/30 bg-cyan/5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-cyan/10 border border-cyan/30 text-cyan">
@@ -256,13 +271,13 @@ export function RacksPage() {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-xs font-bold text-text-primary font-mono">SLAM MAP ADAPTABILITY ACTIVE</h3>
+              <h3 className="text-xs font-bold text-text-primary font-mono">REAL-TIME SLAM MAP ADAPTABILITY ACTIVE</h3>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-success/10 text-success border border-success/30 flex items-center gap-1">
-                <CheckCircle2 className="h-3 w-3" /> Auto-Identified from {mapData?.label || 'Warehouse Grid Map'}
+                <CheckCircle2 className="h-3 w-3" /> Auto-Synced from {mapData?.label || 'Uploaded SLAM PGM Map'}
               </span>
             </div>
             <p className="text-[11px] text-text-secondary mt-0.5">
-              Racks count identified automatically ({detectedRacksCount} structural racks detected). Simply name the rack and specify shelf levels!
+              Detected <strong>{mapAnalysis.count} Racks</strong> from SLAM map contour analysis. Edit shelves count and rack names below in real-time!
             </p>
           </div>
         </div>
@@ -302,13 +317,13 @@ export function RacksPage() {
       <Modal isOpen={isCreateOpen} onClose={() => { setIsCreateOpen(false); resetForm(); }} title="Configure Rack & Shelves">
         <form onSubmit={handleCreate} className="space-y-4">
           <div className="p-3 rounded-lg bg-bg-secondary border border-cyan/30 text-xs flex items-center justify-between">
-            <span className="text-text-secondary font-mono">Auto-Identified from Map:</span>
-            <span className="font-mono text-cyan font-bold">{detectedRacksCount} Rack Structures Detected</span>
+            <span className="text-text-secondary font-mono">Real-time SLAM Map Count:</span>
+            <span className="font-mono text-cyan font-bold">{mapAnalysis.count} Racks Detected</span>
           </div>
 
           <Input
             label="Rack Name / Code"
-            placeholder="e.g. RACK-A03"
+            placeholder="e.g. RACK-07"
             value={code}
             onChange={setCode}
             required
