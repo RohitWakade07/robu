@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { Plus, Trash2, Package } from 'lucide-react'
 import { api } from '../../api/client'
+import { useWebSocket } from '../../hooks/useWebSocket'
 import { Button, Input, LoadingSpinner, EmptyState, StatusBadge } from '../../components/ui'
 
 interface ShipmentItemDraft {
@@ -12,6 +13,18 @@ interface ShipmentItemDraft {
 }
 
 export function WarehouseShipmentsPage() {
+  const queryClient = useQueryClient()
+  
+  useWebSocket({
+    onShipmentUpdate: () => {
+      queryClient.invalidateQueries({ queryKey: ['shipments'] })
+    },
+    onInventoryUpdate: () => {
+      queryClient.invalidateQueries({ queryKey: ['shipments'] })
+      queryClient.invalidateQueries({ queryKey: ['inventory'] })
+    }
+  })
+
   const { data: shipments, isLoading } = useQuery({
     queryKey: ['shipments'],
     queryFn: api.shipments.list,

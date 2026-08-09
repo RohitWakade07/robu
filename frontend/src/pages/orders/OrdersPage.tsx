@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import { api } from '../../api/client'
+import { useWebSocket } from '../../hooks/useWebSocket'
 import { Card, LoadingSpinner, DataTable, type Column, StatusBadge, Button, Modal, Input, Select } from '../../components/ui'
 
 export function OrdersPage() {
@@ -10,6 +11,17 @@ export function OrdersPage() {
   const [selectedProductId, setSelectedProductId] = useState('')
   const [quantity, setQuantity] = useState('1')
   const [notes, setNotes] = useState('')
+
+  // Real-time WebSocket synchronization
+  useWebSocket({
+    onOrderUpdate: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+    },
+    onInventoryUpdate: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+    }
+  })
 
   const { data: orders, isLoading } = useQuery({ queryKey: ['orders'], queryFn: api.orders.list })
   const { data: products } = useQuery({ queryKey: ['products'], queryFn: api.products.list })

@@ -129,6 +129,94 @@ async def submit_robot_task(
     }
 
 
+from app.models.order import CustomerOrder, OrderItem
+from app.models.shipment import IncomingShipment, ShipmentItem
+from app.models.inventory import InventoryItem
+from app.core.enums import OrderStatus, ShipmentStatus, RobotStatus
+from app.websocket.gateway import manager
+
+
+async def sync_task_status_with_db(db: AsyncSession, task_id: str, new_status: str):
+    """
+    Unified Lifecycle Synchronization Engine.
+    Syncs RobotTask status changes directly with PostgreSQL CustomerOrder, IncomingShipment, InventoryItem, and Robot models.
+    """
+    if not task_id or not new_status:
+        return
+
+    result = await db.execute(select(RobotTask).where(RobotTask.id == task_id))
+    db_task = result.scalar_one_or_none()
+    if not db_task:
+        return
+
+    clean_status = new_status.upper().replace("TASK_", "")
+    db_task.status = clean_status
+
+    if clean_status in ["COMPLETED", "FINISHED", "DELIVERED"]:
+        db_task.completed_at = datetime.now(timezone.utc)
+
+        # 1. Sync Order Status & Deduct Inventory Stock
+        if db_task.reference_type == "order" and db_task.reference_id:
+            ord_res = await db.execute(select(CustomerOrder).where(CustomerOrder.id == db_task.reference_id))
+            order = ord_res.scalar_one_or_none()
+            if order:
+                order.status = OrderStatus.DELIVERED.value
+                
+                # Deduct fulfilled items from inventory
+                items_res = await db.execute(select(OrderItem).where(OrderItem.order_id == order.id))
+                for item in items_res.scalars().all():
+                    inv_res = await db.execute(select(InventoryItem).where(InventoryItem.product_id == item.product_id))
+                    inv_item = inv_res.scalar_one_or_none()
+                    if inv_item:
+                        inv_item.quantity = max(0, inv_item.quantity - item.quantity)
+                        inv_item.reserved_quantity = max(0, inv_item.reserved_quantity - item.quantity)
+
+                await manager.broadcast("order_update", {"order_id": order.id, "status": order.status})
+                await manager.broadcast("inventory_update", {"reason": "order_fulfillment", "order_id": order.id})
+
+        # 2. Sync Incoming Shipment & Increment Inventory Stock
+        elif db_task.reference_type == "shipment" and db_task.reference_id:
+            shp_res = await db.execute(select(IncomingShipment).where(IncomingShipment.id == db_task.reference_id))
+            shipment = shp_res.scalar_one_or_none()
+            if shipment:
+                shipment.status = ShipmentStatus.COMPLETED.value
+
+                # Add received items to inventory
+                items_res = await db.execute(select(ShipmentItem).where(ShipmentItem.shipment_id == shipment.id))
+                for item in items_res.scalars().all():
+                    if item.product_id:
+                        inv_res = await db.execute(select(InventoryItem).where(InventoryItem.product_id == item.product_id))
+                        inv_item = inv_res.scalar_one_or_none()
+                        if inv_item:
+                            inv_item.quantity += item.expected_quantity
+                        else:
+                            new_inv = InventoryItem(product_id=item.product_id, quantity=item.expected_quantity, reserved_quantity=0)
+                            db.add(new_inv)
+
+                await manager.broadcast("shipment_update", {"shipment_id": shipment.id, "status": shipment.status})
+                await manager.broadcast("inventory_update", {"reason": "shipment_intake", "shipment_id": shipment.id})
+
+        # 3. Free Robot Fleet State
+        if db_task.robot_id:
+            bot_res = await db.execute(select(Robot).where(Robot.id == db_task.robot_id))
+            bot = bot_res.scalar_one_or_none()
+            if bot:
+                bot.status = RobotStatus.IDLE.value
+                bot.current_task_id = None
+                await manager.broadcast("robot_status", {"robot_id": bot.id, "status": bot.status})
+
+    elif clean_status in ["STARTED", "NAVIGATING", "PICKING", "PLACING"]:
+        if db_task.robot_id:
+            bot_res = await db.execute(select(Robot).where(Robot.id == db_task.robot_id))
+            bot = bot_res.scalar_one_or_none()
+            if bot:
+                bot.status = RobotStatus.NAVIGATING.value if "NAVIGAT" in clean_status else clean_status
+                bot.current_task_id = task_id
+                await manager.broadcast("robot_status", {"robot_id": bot.id, "status": bot.status})
+
+    await db.commit()
+
+
 @router.get("/tasks/{task_id}")
 async def get_task_status(task_id: str, db: AsyncSession = Depends(get_db)):
     # Try fetching from DB first
@@ -140,9 +228,13 @@ async def get_task_status(task_id: str, db: AsyncSession = Depends(get_db)):
     if not db_task and "detail" in ros_status:
         raise HTTPException(status_code=404, detail="Task not found")
 
+    live_status = ros_status.get("status") or (db_task.status if db_task else "UNKNOWN")
+    if db_task and live_status != db_task.status:
+        await sync_task_status_with_db(db, task_id, live_status)
+
     return {
         "task_id": task_id,
-        "status": ros_status.get("status") or (db_task.status if db_task else "UNKNOWN"),
+        "status": live_status,
         "priority": db_task.priority if db_task else 10,
         "ros_bridge_state": ros_status
     }

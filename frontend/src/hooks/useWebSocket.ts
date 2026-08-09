@@ -6,6 +6,8 @@ interface WebSocketOptions {
   onRobotPosition?: (data: any) => void
   onRobotStatus?: (data: any) => void
   onInventoryUpdate?: (data: any) => void
+  onOrderUpdate?: (data: any) => void
+  onShipmentUpdate?: (data: any) => void
 }
 
 export function useWebSocket(options: WebSocketOptions = {}) {
@@ -59,6 +61,12 @@ export function useWebSocket(options: WebSocketOptions = {}) {
             break
           case 'inventory_update':
             opts.onInventoryUpdate?.(msg.data)
+            break
+          case 'order_update':
+            opts.onOrderUpdate?.(msg.data)
+            break
+          case 'shipment_update':
+            opts.onShipmentUpdate?.(msg.data)
             break
         }
       } catch {
