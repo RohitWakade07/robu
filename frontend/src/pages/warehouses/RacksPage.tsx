@@ -64,9 +64,9 @@ export function RacksPage() {
         zone: r.zone,
         levels: r.levels,
         slots: r.slots,
-        occupiedSlots: r.occupiedSlots,
-        slotScore: 980 - i * 35,
-        assignedSkus: i % 2 === 0 ? `SKU-100${i + 1}, SKU-100${i + 2}` : `SKU-100${i + 3}`,
+        occupiedSlots: 0,
+        slotScore: 850,
+        assignedSkus: 'Unassigned',
         maxWeight: '500 kg',
         status: 'operational'
       }))

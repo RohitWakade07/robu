@@ -221,12 +221,12 @@ export function detectRacksFromMap(mapData?: MapData | null) {
     return {
       count: 6,
       racks: [
-        { code: 'RACK-01', zone: 'Golden Fast-Picking', levels: 4, slots: 16, occupiedSlots: 14 },
-        { code: 'RACK-02', zone: 'Golden Fast-Picking', levels: 4, slots: 16, occupiedSlots: 11 },
-        { code: 'RACK-03', zone: 'Golden Fast-Picking', levels: 4, slots: 16, occupiedSlots: 9 },
-        { code: 'RACK-04', zone: 'Cold Storage B', levels: 3, slots: 12, occupiedSlots: 6 },
-        { code: 'RACK-05', zone: 'Reserve Bulk C', levels: 5, slots: 20, occupiedSlots: 15 },
-        { code: 'RACK-06', zone: 'Reserve Bulk C', levels: 4, slots: 16, occupiedSlots: 10 },
+        { code: 'RACK-01', zone: 'Golden Fast-Picking', levels: 4, slots: 16, occupiedSlots: 0 },
+        { code: 'RACK-02', zone: 'Golden Fast-Picking', levels: 4, slots: 16, occupiedSlots: 0 },
+        { code: 'RACK-03', zone: 'Golden Fast-Picking', levels: 4, slots: 16, occupiedSlots: 0 },
+        { code: 'RACK-04', zone: 'Cold Storage B', levels: 3, slots: 12, occupiedSlots: 0 },
+        { code: 'RACK-05', zone: 'Reserve Bulk C', levels: 5, slots: 20, occupiedSlots: 0 },
+        { code: 'RACK-06', zone: 'Reserve Bulk C', levels: 4, slots: 16, occupiedSlots: 0 },
       ]
     }
   }
@@ -247,7 +247,7 @@ export function detectRacksFromMap(mapData?: MapData | null) {
     const levels = 4 // Default initial shelves count
     const slotsPerLevel = 4
     const slots = levels * slotsPerLevel
-    const occupiedSlots = Math.floor(slots * (0.5 + (i * 0.08) % 0.4))
+    const occupiedSlots = 0 // Starts empty by default until items are assigned
 
     return {
       code,
