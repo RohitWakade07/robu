@@ -8,7 +8,7 @@ from app.core.deps import require_roles
 from app.core.enums import UserRole
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.robot import RobotCreate, RobotHealthResponse, RobotResponse
+from app.schemas.robot import RobotCreate, RobotHealthResponse, RobotResponse, RobotUpdate
 from app.services.robot_service import RobotService
 
 router = APIRouter(prefix="/robots", tags=["Robotics Operations"])
@@ -47,17 +47,31 @@ async def create_robot(
     return await service.create_robot(data)
 
 
-@router.get("/{robot_id}", response_model=RobotResponse)
-async def get_robot(
+@router.put("/{robot_id}", response_model=RobotResponse)
+async def update_robot(
     robot_id: str,
+    data: RobotUpdate,
     db: Annotated[AsyncSession, Depends(get_db)],
-    _: Annotated[User, Depends(require_roles(UserRole.ADMINISTRATOR, UserRole.WAREHOUSE_OPERATOR))],
+    _: Annotated[User, Depends(require_roles(UserRole.ADMINISTRATOR))],
 ):
     service = RobotService(db)
-    robot = await service.get_robot(robot_id)
+    robot = await service.update_robot(robot_id, data)
     if not robot:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Robot not found")
     return robot
+
+
+@router.delete("/{robot_id}", status_code=status.HTTP_200_OK)
+async def delete_robot(
+    robot_id: str,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    _: Annotated[User, Depends(require_roles(UserRole.ADMINISTRATOR))],
+):
+    service = RobotService(db)
+    success = await service.delete_robot(robot_id)
+    if not success:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Robot not found")
+    return {"status": "success", "message": "Robot deleted successfully"}
 
 
 @router.get("/{robot_id}/health", response_model=RobotHealthResponse)

@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.enums import RobotStatus
 from app.models.robot import Robot, RobotHealth
-from app.schemas.robot import RobotCreate, RobotResponse, RobotHealthResponse
+from app.schemas.robot import RobotCreate, RobotResponse, RobotHealthResponse, RobotUpdate
 from app.websocket.gateway import manager
 
 logger = logging.getLogger(__name__)
@@ -41,10 +41,28 @@ class RobotService:
         
         await self.db.flush()
         
-        query = select(Robot).options(selectinload(Robot.health)).where(Robot.id == robot.id)
-        result = await self.db.execute(query)
-        robot_refreshed = result.scalar_one()
-        return RobotResponse.model_validate(robot_refreshed)
+    async def update_robot(self, robot_id: str, data: "RobotUpdate") -> Optional[RobotResponse]:
+        result = await self.db.execute(select(Robot).where(Robot.id == robot_id, Robot.deleted_at.is_(None)))
+        robot = result.scalar_one_or_none()
+        if not robot:
+            return None
+        
+        update_data = data.model_dump(exclude_unset=True)
+        for key, value in update_data.items():
+            setattr(robot, key, value)
+            
+        await self.db.flush()
+        return RobotResponse.model_validate(robot)
+
+    async def delete_robot(self, robot_id: str) -> bool:
+        result = await self.db.execute(select(Robot).where(Robot.id == robot_id, Robot.deleted_at.is_(None)))
+        robot = result.scalar_one_or_none()
+        if not robot:
+            return False
+        
+        robot.deleted_at = datetime.now(timezone.utc)
+        await self.db.flush()
+        return True
 
     async def get_robot_health(self, robot_id: str) -> Optional[RobotHealthResponse]:
         result = await self.db.execute(select(RobotHealth).where(RobotHealth.robot_id == robot_id))

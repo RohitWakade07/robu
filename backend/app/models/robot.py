@@ -17,6 +17,7 @@ class Robot(Base, UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin):
     name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     model: Mapped[str] = mapped_column(String(100), default="AMR-001", nullable=False)
     serial_number: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    ip_address: Mapped[Optional[str]] = mapped_column(String(50), default="192.168.1.12", nullable=True)
     status: Mapped[str] = mapped_column(String(50), default=RobotStatus.OFFLINE.value, nullable=False)
     battery_level: Mapped[float] = mapped_column(Float, default=100.0, nullable=False)
     current_task_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)

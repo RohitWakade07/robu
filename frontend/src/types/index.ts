@@ -71,6 +71,7 @@ export interface Robot {
   name: string
   model: string
   serial_number: string
+  ip_address?: string
   status: string
   battery_level: number
   current_task_id?: string

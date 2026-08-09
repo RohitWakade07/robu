@@ -163,11 +163,17 @@ export const api = {
   robots: {
     list: () => request<import('../types').Robot[]>('/robots'),
     get: (id: string) => request<import('../types').Robot>(`/robots/${id}`),
-    create: (data: { name: string; model?: string; serial_number: string }) =>
+    create: (data: { name: string; model?: string; serial_number: string; ip_address?: string }) =>
       request<import('../types').Robot>('/robots', {
         method: 'POST',
         body: JSON.stringify(data),
       }),
+    update: (id: string, data: { name?: string; model?: string; serial_number?: string; ip_address?: string; is_enabled?: boolean }) =>
+      request<import('../types').Robot>(`/robots/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+    delete: (id: string) => request<{ status: string; message: string }>(`/robots/${id}`, { method: 'DELETE' }),
     health: (id: string) => request<import('../types').RobotHealth>(`/robots/${id}/health`),
     sendCommand: (id: string, command: string, payload: Record<string, unknown>) =>
       request(`/robots/${id}/command`, {

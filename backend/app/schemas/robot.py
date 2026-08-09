@@ -11,6 +11,7 @@ class RobotResponse(BaseModel):
     name: str
     model: str
     serial_number: str
+    ip_address: Optional[str] = "192.168.1.12"
     status: str
     battery_level: float
     current_task_id: Optional[str] = None
@@ -24,6 +25,15 @@ class RobotCreate(BaseModel):
     name: str
     model: str = "AMR-001"
     serial_number: str
+    ip_address: Optional[str] = "192.168.1.12"
+
+
+class RobotUpdate(BaseModel):
+    name: Optional[str] = None
+    model: Optional[str] = None
+    serial_number: Optional[str] = None
+    ip_address: Optional[str] = None
+    is_enabled: Optional[bool] = None
 
 
 class RobotHealthResponse(BaseModel):
