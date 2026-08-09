@@ -10,6 +10,7 @@ from app.core.logging import configure_logging
 from app.core.middleware import ErrorLoggingMiddleware
 from app.db.base import Base
 import app.models  # noqa: F401
+from sqlalchemy import text
 from app.db.session import engine
 from app.websocket.gateway import websocket_endpoint
 
@@ -36,6 +37,7 @@ async def lifespan(app: FastAPI):
     try:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
+            await conn.execute(text("ALTER TABLE robots ADD COLUMN IF NOT EXISTS ip_address VARCHAR(50) DEFAULT '192.168.1.12'"))
         logger.info("Database tables verified / created")
     except Exception:
         logger.exception("FATAL: could not create database tables — check DATABASE_URL")
