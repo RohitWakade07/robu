@@ -36,6 +36,10 @@ export function useWebSocket(options: WebSocketOptions = {}) {
       // ws.send(JSON.stringify({ type: 'register_robot', data: { robot_id: ... } }))
     }
     
+    ws.onerror = () => {
+      // Gracefully handle connection attempts without unhandled browser noise
+    }
+
     ws.onclose = () => {
       setIsConnected(false)
       wsRef.current = null

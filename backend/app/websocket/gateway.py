@@ -57,8 +57,13 @@ async def websocket_endpoint(websocket: WebSocket, token: Optional[str] = Query(
     if token:
         try:
             decode_token(token)
-        except ValueError:
-            await websocket.close(code=4401)
+        except Exception as exc:
+            logger.warning("WebSocket token validation failed: %s", exc)
+            try:
+                await websocket.accept()
+                await websocket.close(code=1008, reason="Invalid or expired token")
+            except Exception:
+                pass
             return
 
     await manager.connect(websocket)
