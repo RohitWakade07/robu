@@ -182,7 +182,7 @@ export function WarehousesPage() {
           <Input label="Facility Name" placeholder="e.g. Robu Automated Logistics Hub #3" value={name} onChange={setName} required />
           <Input label="Location Address" placeholder="e.g. South Tech Logistics Park" value={location} onChange={setLocation} />
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Initial Storage Racks" type="number" value={racks} onChange={setRacks} />
+            <Input label="Storage Racks (Auto-Identified from Map)" type="number" value={racks} onChange={setRacks} />
             <Select
               label="Operational Status"
               options={[
