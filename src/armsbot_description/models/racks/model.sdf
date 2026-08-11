@@ -1,0 +1,107 @@
+<?xml version="1.0" ?>
+<sdf version="1.8">
+  <model name="racks">
+    <static>true</static> 
+    
+    <link name="base_link">
+      
+      <visual name="warehouse_visual">
+        <geometry>
+          <mesh>
+            <uri>model://racks/meshes/racks.dae</uri>
+            <scale>1.0 1.0 1.0</scale>
+          </mesh>
+        </geometry>
+      </visual>
+
+      <visual name="custom_back_marker_visual">
+        <pose>0.41 -0.1 0.60 -1.5708 3.14 0</pose>
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>0.15 0.15</size> 
+          </plane>
+        </geometry>
+        <material>
+          <ambient>1 1 1 1</ambient>
+          <diffuse>1 1 1 1</diffuse>
+          <pbr>
+            <metal>
+              <albedo_map>materials/textures/marker11.png</albedo_map>
+            </metal>
+          </pbr>
+        </material>
+      </visual>	
+
+      <visual name="custom_back_marker_visual2">
+        <pose>0.13 -0.1 0.60 -1.5708 3.14 0</pose>
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>0.15 0.15</size> 
+          </plane>
+        </geometry>
+        <material>
+          <ambient>1 1 1 1</ambient>
+          <diffuse>1 1 1 1</diffuse>
+          <pbr>
+            <metal>
+              <albedo_map>materials/textures/marker12.png</albedo_map>
+            </metal>
+          </pbr>
+        </material>
+      </visual>	
+
+      <visual name="custom_back_marker_visual3">
+        <pose>-0.13 -0.1 0.60 -1.5708 3.14 0</pose>
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>0.15 0.15</size> 
+          </plane>
+        </geometry>
+        <material>
+          <ambient>1 1 1 1</ambient>
+          <diffuse>1 1 1 1</diffuse>
+          <pbr>
+            <metal>
+              <albedo_map>materials/textures/marker13.png</albedo_map>
+            </metal>
+          </pbr>
+        </material>
+      </visual>	
+
+      <visual name="custom_back_marker_visual4">
+        <pose>-0.41 -0.1 0.60 -1.5708 3.14 0</pose>
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>0.15 0.15</size> 
+          </plane>
+        </geometry>
+        <material>
+          <ambient>1 1 1 1</ambient>
+          <diffuse>1 1 1 1</diffuse>
+          <pbr>
+            <metal>
+              <albedo_map>materials/textures/marker14.png</albedo_map>
+            </metal>
+          </pbr>
+        </material>
+      </visual>
+
+
+
+      <!-- Shelf Collision to hold pallets -->
+      <collision name="shelf_collision">
+        <pose>0 0 0.50 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>1.125 0.200 0.02</size>
+          </box>
+        </geometry>
+      </collision>
+
+    </link>
+  </model>
+</sdf>

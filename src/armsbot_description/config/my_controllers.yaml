@@ -1,0 +1,37 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 1000
+    use_sim_time: true
+
+    differential_drive_controller:
+      type: diff_drive_controller/DiffDriveController
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    linear_actuator_controller:
+      type: position_controllers/JointGroupPositionController
+
+differential_drive_controller:
+  ros__parameters:
+    publish_rate: 150.0
+
+    # --- THE ODOMETRY TF FIX ---
+    base_frame_id: base_link
+    odom_frame_id: odom
+    enable_odom_tf: false
+    # ---------------------------
+
+    left_wheel_names: ['left_wheel_joint']
+    right_wheel_names: ['right_wheel_joint']
+    wheel_separation: 0.42   # <--- CHANGE THIS FROM 0.21 TO 0.42
+    wheel_radius: 0.05
+
+    use_stamped_vel: false
+
+linear_actuator_controller:
+  ros__parameters:
+    joints:
+      - actuator_rod_joint
+    # Ensure this is a Position Controller, NOT an Effort Controller
+    interface_name: position

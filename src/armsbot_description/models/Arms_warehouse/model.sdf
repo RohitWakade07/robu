@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+<sdf version="1.8">
+  <model name="Arms_warehouse">
+    <static>true</static> 
+    
+    <link name="base_link">
+      
+      <visual name="warehouse_visual">
+        <geometry>
+          <mesh>
+            <uri>model://Arms_warehouse/meshes/warehouse.dae</uri>
+            <scale>1.0 1.0 1.0</scale>
+          </mesh>
+        </geometry>
+      </visual>
+
+      </link>
+  </model>
+</sdf>

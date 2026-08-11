@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" >
+
+    <joint name="camera_joint" type="fixed">
+        <parent link="chassis"/>
+        <child link="camera_link"/>
+        <origin xyz="0.31 0 0.25" rpy="0 0 0"/>
+    </joint>
+
+    <link name="camera_link">
+        <visual>
+            <origin xyz="-0.005 0 0" rpy=" 0 0 1.5708"/>
+            <geometry>
+                <mesh filename="file://$(find armsbot_description)/meshes/camera.stl" scale="1.0 1.0 1.0"/>
+            </geometry>
+            <material name="green"/>
+        </visual>
+    </link>
+
+    <joint name="camera_optical_joint" type="fixed">
+        <parent link="camera_link"/>
+        <child link="camera_link_optical"/>
+        <origin xyz="0 0 0" rpy="${-pi/2} 1.571 ${-pi/2}"/>
+    </joint>
+
+    <link name="camera_link_optical"></link>
+
+</robot>

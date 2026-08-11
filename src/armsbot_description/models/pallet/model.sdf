@@ -1,0 +1,47 @@
+<?xml version="1.0" ?>
+<sdf version="1.8">
+  <model name="pallet">
+    <static>false</static> 
+    
+    <link name="base_link">
+      
+      <visual name="warehouse_visual">
+        <geometry>
+          <mesh>
+            <uri>model://pallet/meshes/pallet.dae</uri>
+            <scale>1.0 1.0 1.0</scale>
+          </mesh>
+        </geometry>
+      </visual>
+
+      <collision name="layer_1_collision">
+        <pose>0 0 0.04 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.200 0.150 0.005</size>
+          </box>
+        </geometry>
+      </collision>
+      
+      <collision name="layer_2_collision">
+        <pose>0.1 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.02 0.150 0.005</size>
+          </box>
+        </geometry>
+      </collision>
+      
+      <collision name="layer_3_collision">
+        <pose>-0.1 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.02 0.150 0.005</size>
+          </box>
+        </geometry>
+      </collision>
+
+
+    </link>
+  </model>
+</sdf>
