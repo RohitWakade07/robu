@@ -87,10 +87,30 @@ cover/
 *.sqlite3
 *.db
 
-# Vite
+# Vite / Frontend Build
 vite.config.ts.timestamp-*
+.vercel
 
-# Temp Scan Scripts
+# Typecheck / Linter Caches
+.mypy_cache/
+.ruff_cache/
+.pyright/
+
+# ROS 2 Build / Bag Files
+aam_ws/build/
+aam_ws/install/
+aam_ws/log/
+*.db3
+*.mcap
+
+# OS Specific
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.Spotlight-V100
+.Trashes
+
+# Temp Scan Scripts & Logs
 scan.py
 scan_results.json
 tree.txt
