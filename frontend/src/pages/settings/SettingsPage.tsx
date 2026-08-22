@@ -3,7 +3,7 @@ import { Card, Input, Button, Select } from '../../components/ui'
 import { useState } from 'react'
 
 export function SettingsPage() {
-  const [dbUrl, setDbUrl] = useState('sqlite+aiosqlite:///./robu_warehouse.db')
+  const [dbUrl, setDbUrl] = useState('sqlite+aiosqlite:///./arms_warehouse.db')
   const [wsPort, setWsPort] = useState('8000')
   const [threshold, setThreshold] = useState('0.15')
 

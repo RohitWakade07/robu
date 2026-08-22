@@ -37,7 +37,11 @@ async def lifespan(app: FastAPI):
     try:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
-            await conn.execute(text("ALTER TABLE robots ADD COLUMN IF NOT EXISTS ip_address VARCHAR(50) DEFAULT '192.168.1.12'"))
+            try:
+                await conn.execute(text("ALTER TABLE robots ADD COLUMN ip_address VARCHAR(50) DEFAULT '192.168.1.12'"))
+            except Exception:
+                # Column likely already exists or database engine handled it via create_all
+                pass
         logger.info("Database tables verified / created")
     except Exception:
         logger.exception("FATAL: could not create database tables — check DATABASE_URL")

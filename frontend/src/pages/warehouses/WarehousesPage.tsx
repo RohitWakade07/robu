@@ -24,8 +24,8 @@ export function WarehousesPage() {
   const [status, setStatus] = useState('operational')
 
   const [warehouses, setWarehouses] = useState<WarehouseItem[]>([
-    { id: 'wh-1', name: 'Robu Central Fulfillment Hub #1', code: 'WH-01', location: 'Main Industrial Zone', capacity: '84% Occupied', racks: 120, robots: 4, status: 'operational' },
-    { id: 'wh-2', name: 'Cold Storage & Bio Facility #2', code: 'WH-02', location: 'North Logistics Park', capacity: '42% Occupied', racks: 45, robots: 2, status: 'operational' },
+    { id: 'wh-1', name: 'ARMS Central Fulfillment Hub #1', code: 'WH-01', location: 'Main Industrial Zone', capacity: '84% Occupied', racks: 120, robots: 4, status: 'operational' },
+    { id: 'wh-2', name: 'ARMS Cold Storage & Bio Facility #2', code: 'WH-02', location: 'North Logistics Park', capacity: '42% Occupied', racks: 45, robots: 2, status: 'operational' },
   ])
 
   const handleCreate = (e: React.FormEvent) => {
@@ -179,7 +179,7 @@ export function WarehousesPage() {
       <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Add New Facility Site">
         <form onSubmit={handleCreate} className="space-y-4">
           <Input label="Facility Code" placeholder="e.g. WH-03" value={code} onChange={setCode} required />
-          <Input label="Facility Name" placeholder="e.g. Robu Automated Logistics Hub #3" value={name} onChange={setName} required />
+          <Input label="Facility Name" placeholder="e.g. ARMS Automated Logistics Hub #3" value={name} onChange={setName} required />
           <Input label="Location Address" placeholder="e.g. South Tech Logistics Park" value={location} onChange={setLocation} />
           <div className="grid grid-cols-2 gap-4">
             <Input label="Storage Racks (Auto-Identified from Map)" type="number" value={racks} onChange={setRacks} />

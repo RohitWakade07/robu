@@ -10,15 +10,16 @@ export function WMSLayout() {
       <header className="bg-bg-primary backdrop-blur-xl border-b border-border-primary px-6 py-3 flex justify-between items-center z-30 shrink-0">
         {/* Logo */}
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-action-primary/10 border border-action-primary/30 flex items-center justify-center overflow-hidden p-1">
-            <img src={logoSrc} alt="Robu" className="w-full h-full object-contain" />
+          <div className="h-10 w-10 rounded-xl bg-action-primary/10 border border-action-primary/40 flex items-center justify-center overflow-hidden p-1 shadow-sm shadow-action-primary/25">
+            <img src={logoSrc} alt="ARMS" className="w-full h-full object-contain" />
           </div>
           <div>
-            <h1 className="text-sm font-bold text-text-primary flex items-center gap-1">
-              Robu<span className="text-action-primary">WMS</span>
+            <h1 className="text-sm font-black text-text-primary flex items-center gap-1.5">
+              <span className="text-gradient-arms font-black tracking-wider text-base">ARMS</span>
+              <span className="text-action-secondary text-[10px] font-mono font-bold bg-action-primary/10 border border-action-primary/30 px-1.5 py-0.5 rounded">WMS</span>
             </h1>
-            <p className="text-[0.65rem] text-text-secondary font-semibold uppercase tracking-wider mt-0.5">
-              Spatial Intelligence Platform v4.0
+            <p className="text-[0.65rem] text-text-secondary font-mono uppercase tracking-widest mt-0.5">
+              Spatial Intelligence Engine v4.0
             </p>
           </div>
         </div>

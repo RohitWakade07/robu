@@ -20,7 +20,7 @@ class Settings(BaseSettings):
         case_sensitive=False,
     )
 
-    app_name: str = "Robu Warehouse Platform"
+    app_name: str = "ARMS Fleet & Warehouse Platform"
     app_version: str = "0.1.0"
     api_v1_prefix: str = "/api/v1"
 

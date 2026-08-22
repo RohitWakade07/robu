@@ -25,27 +25,24 @@ async def seed() -> None:
         await conn.run_sync(Base.metadata.create_all)
     print("Database tables verified / created.")
     async with AsyncSessionLocal() as db:
-        admin_existing = await db.execute(select(User).where(User.email == "admin@robu.io"))
-        if not admin_existing.scalar_one_or_none():
-            admin = User(
-                email="admin@robu.io",
-                hashed_password=get_password_hash("admin12345"),
-                full_name="System Administrator",
-                role=UserRole.ADMINISTRATOR.value,
-            )
-            operator = User(
-                email="operator@robu.io",
-                hashed_password=get_password_hash("operator123"),
-                full_name="Warehouse Operator",
-                role=UserRole.WAREHOUSE_OPERATOR.value,
-            )
-            customer = User(
-                email="customer@robu.io",
-                hashed_password=get_password_hash("customer123"),
-                full_name="Demo Customer",
-                role=UserRole.CUSTOMER.value,
-            )
-            db.add_all([admin, operator, customer])
+        users_to_seed = [
+            ("admin@arms.io", "admin12345", "ARMS System Administrator", UserRole.ADMINISTRATOR.value),
+            ("operator@arms.io", "operator123", "ARMS Fleet Operator", UserRole.WAREHOUSE_OPERATOR.value),
+            ("customer@arms.io", "customer123", "ARMS Demo Customer", UserRole.CUSTOMER.value),
+            ("admin@robu.io", "admin12345", "System Administrator", UserRole.ADMINISTRATOR.value),
+            ("operator@robu.io", "operator123", "Warehouse Operator", UserRole.WAREHOUSE_OPERATOR.value),
+            ("customer@robu.io", "customer123", "Demo Customer", UserRole.CUSTOMER.value),
+        ]
+        for email, pwd, name, role in users_to_seed:
+            existing = await db.execute(select(User).where(User.email == email))
+            if not existing.scalar_one_or_none():
+                db.add(User(
+                    email=email,
+                    hashed_password=get_password_hash(pwd),
+                    full_name=name,
+                    role=role,
+                ))
+        await db.commit()
 
         cat_existing = await db.execute(select(ProductCategory).where(ProductCategory.name == "Electronics"))
         cat = cat_existing.scalar_one_or_none()

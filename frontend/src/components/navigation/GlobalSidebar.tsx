@@ -151,16 +151,17 @@ export function GlobalSidebar({ collapsed }: SidebarProps) {
     >
       {/* Brand Header */}
       <div className="h-16 border-b border-border-primary flex items-center px-4 gap-3 shrink-0">
-        <div className="h-9 w-9 rounded-lg bg-action-primary/10 border border-action-primary/30 flex items-center justify-center p-1 overflow-hidden shrink-0">
-          <img src={logoSrc} alt="Robu" className="w-full h-full object-contain" />
+        <div className="h-9 w-9 rounded-lg bg-action-primary/10 border border-action-primary/40 flex items-center justify-center p-1 overflow-hidden shrink-0 shadow-sm shadow-action-primary/20">
+          <img src={logoSrc} alt="ARMS" className="w-full h-full object-contain" />
         </div>
         {!collapsed && (
           <div className="truncate">
-            <h1 className="text-sm font-bold text-text-primary leading-none flex items-center gap-1">
-              Robu<span className="text-action-primary">WMS</span>
+            <h1 className="text-sm font-black text-text-primary leading-none flex items-center gap-1.5">
+              <span className="text-gradient-arms font-black tracking-wider">ARMS</span>
+              <span className="text-action-secondary text-[10px] font-mono font-bold bg-action-primary/10 border border-action-primary/30 px-1.5 py-0.5 rounded">OS</span>
             </h1>
-            <p className="text-[10px] text-text-secondary font-mono tracking-wider uppercase mt-1">
-              Enterprise v4.2
+            <p className="text-[9px] text-text-secondary font-mono tracking-widest uppercase mt-1">
+              Fleet Orchestration v4.2
             </p>
           </div>
         )}
