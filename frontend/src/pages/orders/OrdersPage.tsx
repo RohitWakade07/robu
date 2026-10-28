@@ -75,7 +75,7 @@ export function OrdersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-text-primary tracking-tight">Customer Orders Pipeline</h1>
+          <h1 className="t-page-title">Customer Orders Pipeline</h1>
           <p className="text-xs text-text-secondary">Order dispatch status, execution tasks & fulfillment pipeline</p>
         </div>
         <Button icon={<Plus className="h-4 w-4" />} onClick={() => setIsModalOpen(true)}>

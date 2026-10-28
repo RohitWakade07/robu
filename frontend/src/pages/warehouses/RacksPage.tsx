@@ -245,7 +245,7 @@ export function RacksPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-text-primary tracking-tight">Racks & Shelves Management</h1>
+          <h1 className="t-page-title">Racks & Shelves Management</h1>
           <p className="text-xs text-text-secondary">Adaptable storage rack layouts dynamically synced with SLAM Map</p>
         </div>
         <div className="flex items-center gap-3">

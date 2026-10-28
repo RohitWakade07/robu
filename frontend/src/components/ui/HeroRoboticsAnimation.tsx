@@ -54,7 +54,7 @@ export function HeroRoboticsAnimation() {
           transition={{ duration: 14, repeat: Infinity, ease: 'linear' }}
           className="absolute inset-0 pointer-events-none"
         >
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-bg-surface/95 border border-cyan/50 px-2.5 py-1 rounded-full shadow-lg shadow-cyan/20 backdrop-blur-md">
+          <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 neu-raised !rounded-full px-2.5 py-1">
             <span className="h-2 w-2 rounded-full bg-cyan animate-ping" />
             <span className="text-[10px] font-mono font-bold text-cyan">AMR-01 [ACTIVE]</span>
           </div>
@@ -66,7 +66,7 @@ export function HeroRoboticsAnimation() {
           transition={{ duration: 18, repeat: Infinity, ease: 'linear' }}
           className="absolute inset-6 pointer-events-none"
         >
-          <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-bg-surface/95 border border-action-primary/50 px-2.5 py-1 rounded-full shadow-lg shadow-action-primary/20 backdrop-blur-md">
+          <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 neu-raised !rounded-full px-2.5 py-1">
             <Navigation className="w-2.5 h-2.5 text-action-primary" />
             <span className="text-[10px] font-mono font-bold text-action-primary">AMR-02 [NAV]</span>
           </div>
@@ -78,7 +78,7 @@ export function HeroRoboticsAnimation() {
           transition={{ duration: 22, repeat: Infinity, ease: 'linear' }}
           className="absolute inset-10 pointer-events-none"
         >
-          <div className="absolute top-1/2 -right-4 -translate-y-1/2 flex items-center gap-1 bg-bg-surface/95 border border-amber/50 px-2 py-0.5 rounded-full shadow-lg shadow-amber/20 backdrop-blur-md">
+          <div className="absolute top-1/2 -right-4 -translate-y-1/2 flex items-center gap-1 neu-raised !rounded-full px-2 py-0.5">
             <Zap className="w-2.5 h-2.5 text-amber" />
             <span className="text-[9px] font-mono font-bold text-amber">98%</span>
           </div>
@@ -88,21 +88,16 @@ export function HeroRoboticsAnimation() {
         <motion.div
           animate={{
             scale: [1, 1.04, 1],
-            boxShadow: [
-              '0 0 20px rgba(6, 182, 212, 0.25)',
-              '0 0 40px rgba(37, 99, 235, 0.45)',
-              '0 0 20px rgba(6, 182, 212, 0.25)',
-            ],
           }}
           transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-          className="relative z-10 w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-gradient-to-br from-midnight-light via-elevated to-midnight border-2 border-action-primary/50 flex items-center justify-center p-3 shadow-2xl backdrop-blur-xl"
+          className="relative z-10 w-28 h-28 sm:w-32 sm:h-32 rounded-3xl neu-float flex items-center justify-center p-3"
         >
           {/* Inner pulsating glow */}
-          <div className="absolute inset-0 rounded-3xl bg-cyan/10 animate-pulse pointer-events-none" />
+          <div className="absolute inset-0 rounded-3xl bg-cyan/5 motion-safe:animate-pulse pointer-events-none" />
           <img
             src={logoSrc}
             alt="ARMS Core Robot Mascot"
-            className="w-full h-full object-contain filter drop-shadow(0 0 14px rgba(6, 182, 212, 0.8)) transition-transform duration-300 hover:scale-110 cursor-pointer"
+            className="w-full h-full object-contain filter drop-shadow(0 4px 8px rgba(0,0,0,0.25)) transition-transform duration-300 hover:scale-110 cursor-pointer"
           />
         </motion.div>
       </div>
@@ -118,8 +113,8 @@ export function HeroRoboticsAnimation() {
             transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
             className="text-center"
           >
-            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight font-display text-black dark:text-white">
-              <span className="text-hero-kinetic text-black dark:text-white font-black drop-shadow-sm transition-colors duration-300">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight font-display">
+              <span className="text-hero-kinetic font-black">
                 {HERO_PHRASES[index]}
               </span>
             </h1>
@@ -128,17 +123,17 @@ export function HeroRoboticsAnimation() {
       </div>
 
       {/* Floating Real-time HUD Indicator */}
-      <div className="flex items-center gap-4 px-4 py-1.5 rounded-full bg-bg-surface/80 border border-border-primary text-[11px] font-mono text-text-secondary shadow-sm mb-6">
+      <div className="flex items-center gap-4 px-4 py-1.5 rounded-full neu-inset !rounded-full text-[11px] font-mono text-text-secondary mb-6">
         <span className="flex items-center gap-1.5 text-cyan font-semibold">
-          <Radio className="w-3 h-3 animate-pulse text-cyan" /> ROS 2 BRIDGE ACTIVE
+          <Radio className="w-3 h-3 animate-pulse text-cyan" /> ROS 2 BRIDGE
         </span>
         <span className="w-1 h-1 rounded-full bg-border-hover" />
         <span className="flex items-center gap-1 text-action-primary">
-          <Activity className="w-3 h-3 text-action-primary" /> 100 Hz SYNC
+          <Activity className="w-3 h-3 text-action-primary" /> LIVE TELEMETRY
         </span>
         <span className="w-1 h-1 rounded-full bg-border-hover" />
         <span className="flex items-center gap-1 text-success">
-          <Cpu className="w-3 h-3 text-success" /> OPTIMIZER OK
+          <Cpu className="w-3 h-3 text-success" /> SLOTTING ENGINE
         </span>
       </div>
     </div>

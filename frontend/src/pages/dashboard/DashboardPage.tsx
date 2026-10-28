@@ -1,194 +1,144 @@
+import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import {
-  Bot,
-  Package,
-  ShoppingCart,
-  Activity,
-  Layers,
-  Sparkles,
-  CheckCircle2,
-  Clock,
-} from 'lucide-react'
+import { Bot, Package, ShoppingCart, Layers, Activity, Sparkles, ArrowRight } from 'lucide-react'
 import { api } from '../../api/client'
-import { MetricCard, LoadingSpinner, StatusBadge, DataTable, Card, type Column } from '../../components/ui'
+import { useAuthStore } from '../../stores/authStore'
+import { useWebSocket } from '../../hooks/useWebSocket'
+import { MetricCard, Skeleton, StatusBadge, DataTable, Card, PageHeader, ErrorState, Notice, type Column } from '../../components/ui'
+import type { Robot } from '../../types'
 
 export function DashboardPage() {
-  const { data: robots, isLoading: robotsLoading } = useQuery({
-    queryKey: ['robots'],
-    queryFn: api.robots.list,
-  })
-  const { data: orders } = useQuery({ queryKey: ['orders'], queryFn: api.orders.list })
-  const { data: shipments } = useQuery({ queryKey: ['shipments'], queryFn: api.shipments.list })
-  const { data: products } = useQuery({ queryKey: ['products'], queryFn: api.products.list })
+  const role = useAuthStore((s) => s.user?.role)
+  const isStaff = role === 'administrator' || role === 'warehouse_operator'
+  const { isConnected } = useWebSocket()
 
-  if (robotsLoading) return <LoadingSpinner />
+  const robots = useQuery({ queryKey: ['robots'], queryFn: api.robots.list, enabled: isStaff })
+  const orders = useQuery({ queryKey: ['orders'], queryFn: api.orders.list })
+  const shipments = useQuery({ queryKey: ['shipments'], queryFn: api.shipments.list, enabled: isStaff })
+  const products = useQuery({ queryKey: ['products'], queryFn: api.products.list })
+  const recommendations = useQuery({ queryKey: ['slotting-recommendations'], queryFn: api.slotting.recommendations, enabled: isStaff })
 
-  const activeRobots = robots?.filter((r) => r.status === 'busy' || r.status === 'working').length || 0
-  const totalRobots = robots?.length || 0
-  const pendingOrders = orders?.filter((o) => ['pending', 'processing', 'retrieving'].includes(o.status)).length || 0
-  const activeShipments = shipments?.filter((s) => ['registered', 'queued', 'processing'].includes(s.status)).length || 0
+  const robotList = robots.data ?? []
+  const activeRobots = robotList.filter((r) => r.status === 'busy' || r.status === 'working').length
+  const pendingOrders = (orders.data ?? []).filter((o) => ['pending', 'processing', 'retrieving'].includes(o.status)).length
+  const activeShipments = (shipments.data ?? []).filter((s) => ['registered', 'queued', 'processing'].includes(s.status)).length
 
-  const robotColumns: Column<Record<string, unknown>>[] = [
+  const robotColumns: Column<Robot & Record<string, unknown>>[] = [
     {
-      header: 'Robot Name',
+      header: 'Robot',
+      accessorKey: 'name',
+      sortable: true,
       cell: (row) => (
         <div className="flex items-center gap-2">
-          <Bot className="h-4 w-4 text-cyan" />
-          <span className="font-semibold text-text-primary">{String(row.name)}</span>
+          <Bot className="h-4 w-4 text-action-primary" aria-hidden="true" />
+          <span className="font-semibold text-text-primary">{row.name}</span>
         </div>
       ),
     },
-    {
-      header: 'Model / Serial',
-      cell: (row) => <span className="font-mono text-xs text-text-secondary">{String(row.serial_number)}</span>,
-    },
+    { header: 'Serial', accessorKey: 'serial_number', cell: (row) => <span className="font-mono text-xs text-text-secondary">{row.serial_number}</span> },
     {
       header: 'Battery',
-      cell: (row) => (
-        <span className="font-mono text-xs text-text-primary">{Number(row.battery_level).toFixed(0)}%</span>
-      ),
+      sortable: true,
+      sortValue: (row) => Number(row.battery_level),
+      cell: (row) => <span className="t-numeric text-xs text-text-primary">{Number(row.battery_level).toFixed(0)}%</span>,
     },
-    {
-      header: 'Status',
-      cell: (row) => <StatusBadge status={String(row.status)} />,
-    },
+    { header: 'Status', cell: (row) => <StatusBadge status={row.status} /> },
   ]
+
+  const loading = orders.isLoading || products.isLoading || (isStaff && (robots.isLoading || shipments.isLoading))
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-xl font-bold text-text-primary tracking-tight">Operational Command Center</h1>
-        <p className="text-xs text-text-secondary">
-          Real-time warehouse telemetry, autonomous fleet control & spatial optimization overview
-        </p>
-      </div>
+      <PageHeader title="Operational Command Center" description="Live view of your fleet, orders, inbound shipments and catalog." />
 
-      {/* System Status Strip */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-        <div className="glass-panel p-3 rounded-xl border border-border-primary flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-cyan/10 text-cyan">
-            <Bot className="h-5 w-5" />
-          </div>
-          <div>
-            <p className="text-[10px] uppercase font-mono text-text-secondary">Fleet Online</p>
-            <p className="text-sm font-bold text-text-primary font-mono">{activeRobots} / {totalRobots} Active</p>
-          </div>
+      {loading ? (
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4" aria-busy="true">
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-28" />
+          ))}
         </div>
-
-        <div className="glass-panel p-3 rounded-xl border border-border-primary flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-success/10 text-success">
-            <CheckCircle2 className="h-5 w-5" />
-          </div>
-          <div>
-            <p className="text-[10px] uppercase font-mono text-text-secondary">API & DB State</p>
-            <p className="text-sm font-bold text-success font-mono">100% Operational</p>
-          </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+          {isStaff && <MetricCard label="Active Robots" value={`${activeRobots} / ${robotList.length}`} icon={<Bot className="h-5 w-5" />} accent="cyan" />}
+          <MetricCard label="Open Orders" value={pendingOrders} icon={<ShoppingCart className="h-5 w-5" />} accent="amber" />
+          {isStaff && <MetricCard label="Inbound Shipments" value={activeShipments} icon={<Package className="h-5 w-5" />} accent="electric" />}
+          <MetricCard label="Catalog Products" value={products.data?.length ?? 0} icon={<Layers className="h-5 w-5" />} accent="green" />
         </div>
+      )}
 
-        <div className="glass-panel p-3 rounded-xl border border-border-primary flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-amber/10 text-amber">
-            <Clock className="h-5 w-5" />
-          </div>
-          <div>
-            <p className="text-[10px] uppercase font-mono text-text-secondary">Avg Pick Time</p>
-            <p className="text-sm font-bold text-text-primary font-mono">2.4 min / order</p>
-          </div>
-        </div>
+      {(orders.isError || products.isError || robots.isError || shipments.isError) && (
+        <Notice tone="warning" title="Some figures could not be loaded">
+          Counts above may be incomplete. Check your connection or permissions and refresh.
+        </Notice>
+      )}
 
-        <div className="glass-panel p-3 rounded-xl border border-border-primary flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-action-primary/10 text-action-primary">
-            <Sparkles className="h-5 w-5" />
-          </div>
-          <div>
-            <p className="text-[10px] uppercase font-mono text-text-secondary">A* Slotting Gain</p>
-            <p className="text-sm font-bold text-action-primary font-mono">+18.4% Efficiency</p>
-          </div>
-        </div>
-      </div>
-
-      {/* KPI Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard label="Active Robot Fleet" value={activeRobots} icon={<Bot className="h-5 w-5" />} accent="cyan" />
-        <MetricCard label="Pending Customer Orders" value={pendingOrders} icon={<ShoppingCart className="h-5 w-5" />} accent="amber" />
-        <MetricCard label="Inbound Shipments" value={activeShipments} icon={<Package className="h-5 w-5" />} accent="electric" />
-        <MetricCard label="Products In Catalog" value={products?.length || 0} icon={<Layers className="h-5 w-5" />} accent="green" />
-      </div>
-
-      {/* Main Command Split View */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Robot Fleet Summary */}
-        <div className="lg:col-span-2 space-y-4">
-          <Card>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
-                <Bot className="h-4 w-4 text-cyan" />
-                Active Robot Fleet Status
-              </h3>
-              <span className="text-xs text-text-secondary font-mono">{totalRobots} AMRs Registered</span>
+      {isStaff && (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <Card className="lg:col-span-2">
+            <div className="mb-4 flex items-center justify-between gap-2">
+              <h2 className="t-section-title flex items-center gap-2">
+                <Bot className="h-4 w-4 text-action-primary" aria-hidden="true" /> Robot fleet
+              </h2>
+              <Link to="/robots" className="inline-flex items-center gap-1 text-xs font-semibold text-action-primary hover:underline">
+                Manage fleet <ArrowRight className="h-3 w-3" aria-hidden="true" />
+              </Link>
             </div>
-            <DataTable
-              columns={robotColumns}
-              data={(robots || []) as unknown as Record<string, unknown>[]}
-              pageSize={5}
-              emptyTitle="No Robots Registered"
-              emptyDescription="Add autonomous mobile robots to monitor real-time fleet operations."
-            />
-          </Card>
-        </div>
-
-        {/* Right Column: Alerts & Recent Activity */}
-        <div className="space-y-4">
-          <Card>
-            <h3 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-action-primary" />
-              Optimization & Relocation Alerts
-            </h3>
-            <div className="space-y-3">
-              <div className="p-3 rounded-lg bg-action-primary/10 border border-action-primary/20 text-xs space-y-1">
-                <div className="flex justify-between font-semibold text-action-primary">
-                  <span>Fast Mover Sub-optimal</span>
-                  <span className="font-mono">+24% Dist</span>
-                </div>
-                <p className="text-text-secondary">
-                  SKU-001 is placed in Zone C (Reserve). Recommended relocation to Golden Zone A-01.
-                </p>
-              </div>
-
-              <div className="p-3 rounded-lg bg-amber/10 border border-amber/20 text-xs space-y-1">
-                <div className="flex justify-between font-semibold text-amber">
-                  <span>High Co-occurrence Pair</span>
-                  <span className="font-mono">Jaccard 0.82</span>
-                </div>
-                <p className="text-text-secondary">
-                  SKU-004 and SKU-012 frequently ordered together. Recommend adjacent slotting.
-                </p>
-              </div>
-            </div>
+            {robots.isError ? (
+              <ErrorState title="Could not load robots" error={robots.error} onRetry={() => robots.refetch()} />
+            ) : (
+              <DataTable
+                caption="Robot fleet"
+                columns={robotColumns}
+                data={robotList as (Robot & Record<string, unknown>)[]}
+                pageSize={5}
+                emptyTitle="No robots registered"
+                emptyDescription="Register robots on the Robot Fleet page to monitor them here."
+              />
+            )}
           </Card>
 
-          <Card>
-            <h3 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
-              <Activity className="h-4 w-4 text-cyan" />
-              System Diagnostics
-            </h3>
-            <div className="space-y-2 text-xs">
-              <div className="flex justify-between py-1.5 border-b border-border-primary/50 text-text-secondary">
-                <span>FastAPI Backend Server</span>
-                <span className="text-success font-mono font-medium">Online (Port 8000)</span>
-              </div>
-              <div className="flex justify-between py-1.5 border-b border-border-primary/50 text-text-secondary">
-                <span>WebSocket Telemetry Gateway</span>
-                <span className="text-cyan font-mono font-medium">Connected</span>
-              </div>
-              <div className="flex justify-between py-1.5 text-text-secondary">
-                <span>Database Engine</span>
-                <span className="text-text-primary font-mono">SQLite / SQLAlchemy</span>
-              </div>
-            </div>
-          </Card>
+          <div className="space-y-6">
+            <Card>
+              <h2 className="t-section-title mb-4 flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-action-primary" aria-hidden="true" /> Slotting
+              </h2>
+              {recommendations.isError ? (
+                <p className="text-sm text-text-secondary">Slot recommendations are unavailable right now.</p>
+              ) : (
+                <>
+                  <p className="t-numeric text-3xl text-text-primary">{recommendations.data?.length ?? '–'}</p>
+                  <p className="mt-1 text-sm text-text-secondary">slot recommendations generated</p>
+                  <Link to="/slotting/recommendations" className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-action-primary hover:underline">
+                    Review recommendations <ArrowRight className="h-3 w-3" aria-hidden="true" />
+                  </Link>
+                </>
+              )}
+            </Card>
+
+            <Card>
+              <h2 className="t-section-title mb-4 flex items-center gap-2">
+                <Activity className="h-4 w-4 text-action-primary" aria-hidden="true" /> System status
+              </h2>
+              <dl className="space-y-3 text-sm">
+                <StatusRow label="API" ok={!orders.isError && !products.isError} okText="Reachable" badText="Errors" />
+                <StatusRow label="Telemetry socket" ok={isConnected} okText="Connected" badText="Reconnecting" />
+              </dl>
+            </Card>
+          </div>
         </div>
-      </div>
+      )}
+    </div>
+  )
+}
+
+function StatusRow({ label, ok, okText, badText }: { label: string; ok: boolean; okText: string; badText: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <dt className="text-text-secondary">{label}</dt>
+      <dd className={`flex items-center gap-2 font-semibold ${ok ? 'text-success' : 'text-amber'}`}>
+        <span className="h-2 w-2 rounded-full bg-current" aria-hidden="true" />
+        {ok ? okText : badText}
+      </dd>
     </div>
   )
 }

@@ -41,6 +41,8 @@ export function useWebSocket(options: WebSocketOptions = {}) {
     }
 
     ws.onclose = () => {
+      // A superseded socket (e.g. closed by StrictMode's remount) must not clobber the live one.
+      if (wsRef.current !== ws) return
       setIsConnected(false)
       wsRef.current = null
       if (isComponentMounted.current) {
@@ -88,10 +90,9 @@ export function useWebSocket(options: WebSocketOptions = {}) {
     return () => {
       isComponentMounted.current = false
       if (reconnectTimeout.current) window.clearTimeout(reconnectTimeout.current)
-      if (wsRef.current) {
-        wsRef.current.close()
-        wsRef.current = null
-      }
+      const ws = wsRef.current
+      wsRef.current = null
+      ws?.close()
     }
   }, [connect])
 

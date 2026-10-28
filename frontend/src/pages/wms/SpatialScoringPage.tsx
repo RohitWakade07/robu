@@ -66,7 +66,7 @@ export function SpatialScoringPage() {
       border-radius:0.75rem;border-left:4px solid ${border};
       box-shadow:0 10px 25px rgba(0,0,0,0.12);
       z-index:9999;font-family:Inter,sans-serif;
-      font-size:0.85rem;font-weight:600;color:#1e293b;
+      font-size:0.85rem;font-weight:600;color:var(--c-text);
       animation:slideInR 0.3s ease;max-width:360px;
     `
     // inline keyframe via a dynamic style tag
@@ -351,18 +351,18 @@ export function SpatialScoringPage() {
     if (placeholder) tbody.innerHTML = ''
     const tr = document.createElement('tr')
     tr.style.cssText = 'transition:background 0.15s;'
-    tr.onmouseenter = () => { tr.style.background = '#f8fafc' }
+    tr.onmouseenter = () => { tr.style.background = 'var(--c-inset)' }
     tr.onmouseleave = () => { tr.style.background = '' }
     const ts = new Date(record.timestamp)
     const profile = `${record.params.velocity} Vel • ${record.params.handling} • ${record.params.weight}`
     const badgeColor = record.params.velocity === 'High' ? '#fee2e2;color:#991b1b' : record.params.velocity === 'Low' ? '#dbeafe;color:#1e40af' : '#fef3c7;color:#92400e'
     tr.innerHTML = `
-      <td style="padding:0.6rem 1rem;font-size:0.7rem;color:#94a3b8;">${ts.toLocaleTimeString()}</td>
-      <td style="padding:0.6rem 1rem;font-family:monospace;font-size:0.75rem;font-weight:700;color:#1e293b;">PKG-${String(record.id).padStart(4, '0')}</td>
-      <td style="padding:0.6rem 1rem;font-family:monospace;font-size:0.75rem;color:#2563eb;font-weight:600;">${record.slot}</td>
+      <td style="padding:0.6rem 1rem;font-size:0.7rem;color:var(--c-text-3);">${ts.toLocaleTimeString()}</td>
+      <td style="padding:0.6rem 1rem;font-family:monospace;font-size:0.75rem;font-weight:700;color:var(--c-text);">PKG-${String(record.id).padStart(4, '0')}</td>
+      <td style="padding:0.6rem 1rem;font-family:monospace;font-size:0.75rem;color:var(--c-accent);font-weight:600;">${record.slot}</td>
       <td style="padding:0.6rem 1rem;"><span style="display:inline-block;padding:0.2rem 0.5rem;font-size:0.65rem;font-weight:700;border-radius:4px;background:${badgeColor};text-transform:uppercase;">${profile}</span></td>
-      <td style="padding:0.6rem 1rem;font-size:0.7rem;color:#475569;line-height:1.5;white-space:normal;max-width:380px;">${record.reason}</td>
-      <td style="padding:0.6rem 1rem;font-weight:700;font-size:0.85rem;color:${record.score >= 800 ? '#16a34a' : record.score >= 500 ? '#2563eb' : '#64748b'};">${record.score}</td>
+      <td style="padding:0.6rem 1rem;font-size:0.7rem;color:var(--c-text-2);line-height:1.5;white-space:normal;max-width:380px;">${record.reason}</td>
+      <td style="padding:0.6rem 1rem;font-weight:700;font-size:0.85rem;color:${record.score >= 800 ? 'var(--c-ok)' : record.score >= 500 ? 'var(--c-accent)' : 'var(--c-text-2)'};">${record.score}</td>
     `
     tbody.insertBefore(tr, tbody.firstChild)
   }
@@ -422,7 +422,7 @@ export function SpatialScoringPage() {
     packageCounterRef.current = 1
     placementHistoryRef.current = []
     if (manifestRef.current) {
-      manifestRef.current.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:#94a3b8;font-size:0.85rem;">No packages ingested yet.</td></tr>`
+      manifestRef.current.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--c-text-3);font-size:0.85rem;">No packages ingested yet.</td></tr>`
     }
     updateUI()
     showToast('Warehouse reset', 'success')
@@ -442,8 +442,9 @@ export function SpatialScoringPage() {
 
       const scene = new THREE.Scene()
       sceneRef.current = scene
-      scene.background = new THREE.Color(0xf8fafc)
-      scene.fog = new THREE.Fog(0xf8fafc, 40, 280)
+      const sceneBg = new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--c-inset').trim() || '#dde3ed')
+      scene.background = sceneBg
+      scene.fog = new THREE.Fog(sceneBg, 40, 280)
 
       const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000)
       cameraRef.current = camera
@@ -536,16 +537,16 @@ export function SpatialScoringPage() {
     marginBottom: '1.25rem',
   }
   const sectionTitle: React.CSSProperties = {
-    fontSize: '0.65rem', fontWeight: 800, color: '#475569',
+    fontSize: '0.65rem', fontWeight: 800, color: 'var(--c-text-2)',
     textTransform: 'uppercase', letterSpacing: '0.08em',
     marginBottom: '0.6rem', paddingBottom: '0.5rem',
-    borderBottom: '1px solid #f1f5f9',
+    borderBottom: '1px solid var(--c-inset)',
     display: 'flex', alignItems: 'center', gap: '0.4rem',
   }
   const grid2: React.CSSProperties = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }
   const formField: React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: '0.2rem' }
   const labelStyle: React.CSSProperties = {
-    fontSize: '0.6rem', fontWeight: 700, color: '#94a3b8',
+    fontSize: '0.6rem', fontWeight: 700, color: 'var(--c-text-3)',
     textTransform: 'uppercase', letterSpacing: '0.06em',
   }
   const dot = (color: string): React.CSSProperties => ({
@@ -553,10 +554,10 @@ export function SpatialScoringPage() {
   })
 
   return (
-    <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+    <div className="neu-raised flex flex-1 flex-col overflow-hidden lg:h-[calc(100vh-13rem)] lg:min-h-[640px] lg:flex-row">
 
       {/* ── Sidebar ─────────────────────────────────────────────────────────── */}
-      <aside className="w-[22rem] bg-bg-primary border-r border-border-primary flex flex-col z-10 shrink-0 shadow-[4px_0_20px_rgba(0,0,0,0.05)]">
+      <aside className="z-10 flex max-h-[28rem] w-full shrink-0 flex-col bg-bg-primary lg:max-h-none lg:w-[22rem] lg:shadow-[4px_0_12px_-4px_var(--sh-dark)]">
         <div className="flex-1 overflow-y-auto p-4 flex flex-col">
 
           {/* Facility Layout */}
@@ -566,12 +567,12 @@ export function SpatialScoringPage() {
               <div style={formField}>
                 <label style={labelStyle}>Rows (Depth)</label>
                 <input ref={rowsRef} id="w-rows" type="number" defaultValue={6} min={2} max={20}
-                  className="bg-bg-primary border-[1.5px] border-border-primary text-text-primary rounded-md px-2 py-1.5 text-xs font-medium outline-none w-full transition-colors focus:border-action-primary" onChange={() => buildWarehouse()} />
+                  className="neu-field" onChange={() => buildWarehouse()} />
               </div>
               <div style={formField}>
                 <label style={labelStyle}>Cols (Width)</label>
                 <input ref={colsRef} id="w-cols" type="number" defaultValue={7} min={3} max={20} step={2}
-                  className="bg-bg-primary border-[1.5px] border-border-primary text-text-primary rounded-md px-2 py-1.5 text-xs font-medium outline-none w-full transition-colors focus:border-action-primary" onChange={() => buildWarehouse()} />
+                  className="neu-field" onChange={() => buildWarehouse()} />
               </div>
             </div>
           </div>
@@ -581,15 +582,15 @@ export function SpatialScoringPage() {
             <h2 style={sectionTitle}><span style={dot('#3b82f6')} /> Core Logistics</h2>
             <div style={grid2}>
               {[
-                { id: 'p-velocity', label: 'Velocity', options: ['High', 'Medium', 'Low'], def: 'Medium', className: 'border-blue-300 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:border-blue-700 dark:text-blue-300' },
-                { id: 'p-alloc', label: 'Allocation', options: ['To Stock', 'Cross-Dock'], def: 'To Stock', className: 'border-amber-300 bg-amber-50 text-amber-800 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-300' },
-                { id: 'p-rotation', label: 'Rotation', options: ['Standard', 'FEFO', 'FIFO'], def: 'Standard', className: 'bg-bg-primary border-border-primary text-text-primary' },
-                { id: 'p-qa', label: 'QA Status', options: ['Cleared', 'Quarantine'], def: 'Cleared', className: 'border-red-300 bg-red-50 text-red-800 dark:bg-red-900/30 dark:border-red-700 dark:text-red-300' },
+                { id: 'p-velocity', label: 'Velocity', options: ['High', 'Medium', 'Low'], def: 'Medium', className: 'text-action-primary' },
+                { id: 'p-alloc', label: 'Allocation', options: ['To Stock', 'Cross-Dock'], def: 'To Stock', className: 'text-amber' },
+                { id: 'p-rotation', label: 'Rotation', options: ['Standard', 'FEFO', 'FIFO'], def: 'Standard', className: '' },
+                { id: 'p-qa', label: 'QA Status', options: ['Cleared', 'Quarantine'], def: 'Cleared', className: 'text-error' },
               ].map(f => (
                 <div key={f.id} style={formField}>
                   <label style={labelStyle}>{f.label}</label>
-                  <select id={f.id} defaultValue={f.def} className={`border-[1.5px] rounded-md px-2 py-1.5 text-xs font-medium outline-none w-full transition-colors ${f.className}`}>
-                    {f.options.map(o => <option key={o} className="bg-bg-primary text-text-primary">{o}</option>)}
+                  <select id={f.id} defaultValue={f.def} className={`neu-field ${f.className}`}>
+                    {f.options.map(o => <option key={o}>{o}</option>)}
                   </select>
                 </div>
               ))}
@@ -610,8 +611,8 @@ export function SpatialScoringPage() {
               ].map(f => (
                 <div key={f.id} style={formField}>
                   <label style={labelStyle}>{f.label}</label>
-                  <select id={f.id} defaultValue={f.def} className="bg-bg-primary border-[1.5px] border-border-primary text-text-primary rounded-md px-2 py-1.5 text-xs font-medium outline-none w-full transition-colors">
-                    {f.options.map(o => <option key={o} className="bg-bg-primary text-text-primary">{o}</option>)}
+                  <select id={f.id} defaultValue={f.def} className="neu-field">
+                    {f.options.map(o => <option key={o}>{o}</option>)}
                   </select>
                 </div>
               ))}
@@ -630,8 +631,8 @@ export function SpatialScoringPage() {
               ].map(f => (
                 <div key={f.id} style={formField}>
                   <label style={labelStyle}>{f.label}</label>
-                  <select id={f.id} defaultValue={f.def} className="bg-bg-primary border-[1.5px] border-border-primary text-text-primary rounded-md px-2 py-1.5 text-xs font-medium outline-none w-full transition-colors">
-                    {f.options.map(o => <option key={o} className="bg-bg-primary text-text-primary">{o}</option>)}
+                  <select id={f.id} defaultValue={f.def} className="neu-field">
+                    {f.options.map(o => <option key={o}>{o}</option>)}
                   </select>
                 </div>
               ))}
@@ -648,7 +649,7 @@ export function SpatialScoringPage() {
                 { type: 'fragile', label: '🔶 Fragile' },
                 { type: 'frozen', label: '❄️ Frozen' },
               ].map(p => (
-                <button key={p.type} onClick={() => applyPreset(p.type)} className="bg-bg-elevated border border-border-primary text-text-secondary hover:text-text-primary hover:bg-action-primary/10 hover:border-action-primary/30 rounded-md p-2 text-xs font-semibold cursor-pointer transition-all">
+                <button key={p.type} onClick={() => applyPreset(p.type)} className="neu-pressable cursor-pointer rounded-[var(--radius-neu-sm)] p-2 text-xs font-semibold text-text-secondary hover:text-text-primary">
                   {p.label}
                 </button>
               ))}
@@ -657,8 +658,8 @@ export function SpatialScoringPage() {
         </div>
 
         {/* Action footer */}
-        <div className="p-4 bg-bg-elevated border-t border-border-primary">
-          <button onClick={dispatchPackage} className="w-full bg-gradient-to-br from-action-primary to-blue-600 text-white border-none rounded-lg p-3.5 text-sm font-bold cursor-pointer shadow-lg shadow-action-primary/30 transition-all hover:-translate-y-px hover:shadow-xl hover:shadow-action-primary/40 flex items-center justify-center gap-2">
+        <div className="border-t border-border-primary p-4">
+          <button onClick={dispatchPackage} className="neu-primary-btn">
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
             Ingest Package
           </button>
@@ -669,7 +670,7 @@ export function SpatialScoringPage() {
       </aside>
 
       {/* ── Main ────────────────────────────────────────────────────────────── */}
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
+      <main className="min-h-[34rem] lg:min-h-0" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
 
         {/* Stats header bar */}
         <div style={{
@@ -679,12 +680,12 @@ export function SpatialScoringPage() {
           {/* Legend */}
           <div style={{
             background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)',
-            borderRadius: 10, border: '1px solid #e2e8f0',
+            borderRadius: 10, border: '1px solid var(--c-line-strong)',
             boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
             padding: '0.75rem', fontSize: '0.7rem', fontWeight: 600,
             pointerEvents: 'none',
           }}>
-            <div style={{ color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8, fontSize: '0.62rem' }}>Zone Legend</div>
+            <div style={{ color: 'var(--c-text-2)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8, fontSize: '0.62rem' }}>Zone Legend</div>
             {[
               { color: '#ef4444', label: 'High Velocity (Front)' },
               { color: '#facc15', label: 'Medium (Middle)' },
@@ -693,7 +694,7 @@ export function SpatialScoringPage() {
             ].map(l => (
               <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                 <span style={{ width: 10, height: 10, borderRadius: 3, background: l.color, display: 'inline-block', flexShrink: 0 }} />
-                <span style={{ color: '#475569' }}>{l.label}</span>
+                <span style={{ color: 'var(--c-text-2)' }}>{l.label}</span>
               </div>
             ))}
           </div>
@@ -702,16 +703,16 @@ export function SpatialScoringPage() {
         {/* Stats (top-left overlay) */}
         <div style={{ position: 'absolute', top: 12, left: 12, zIndex: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
           {[
-            { label: 'Packages', ref: pkgCountRef, defaultVal: '0', color: '#1e293b' },
-            { label: 'Efficiency', ref: efficiencyRef, defaultVal: '100%', color: '#16a34a' },
+            { label: 'Packages', ref: pkgCountRef, defaultVal: '0', color: 'var(--c-text)' },
+            { label: 'Efficiency', ref: efficiencyRef, defaultVal: '100%', color: 'var(--c-ok)' },
           ].map(s => (
             <div key={s.label} style={{
               background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)',
-              borderRadius: 10, border: '1px solid #e2e8f0',
+              borderRadius: 10, border: '1px solid var(--c-line-strong)',
               boxShadow: '0 4px 12px rgba(0,0,0,0.07)',
               padding: '0.6rem 0.875rem', minWidth: 90,
             }}>
-              <p style={{ fontSize: '0.6rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 2 }}>{s.label}</p>
+              <p style={{ fontSize: '0.6rem', color: 'var(--c-text-3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 2 }}>{s.label}</p>
               <div style={{ fontSize: '1.25rem', fontWeight: 800, color: s.color, lineHeight: 1 }}>
                 <span ref={s.ref}>{s.defaultVal}</span>
               </div>
@@ -724,30 +725,30 @@ export function SpatialScoringPage() {
         <div style={{ position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', zIndex: 10, display: 'flex', gap: 8 }}>
           <button onClick={() => { if (analyticsModalRef.current) analyticsModalRef.current.style.display = 'flex' }} style={{
             background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)',
-            border: '1px solid #e2e8f0', borderRadius: 8, padding: '0.45rem 0.875rem',
-            fontSize: '0.75rem', fontWeight: 600, color: '#475569', cursor: 'pointer',
+            border: '1px solid var(--c-line-strong)', borderRadius: 8, padding: '0.45rem 0.875rem',
+            fontSize: '0.75rem', fontWeight: 600, color: 'var(--c-text-2)', cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: 6,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+            boxShadow: 'var(--neu-raised)',
           }}>
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
             Analytics
           </button>
           <button onClick={() => { if (exportModalRef.current) exportModalRef.current.style.display = 'flex' }} style={{
             background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)',
-            border: '1px solid #e2e8f0', borderRadius: 8, padding: '0.45rem 0.875rem',
-            fontSize: '0.75rem', fontWeight: 600, color: '#475569', cursor: 'pointer',
+            border: '1px solid var(--c-line-strong)', borderRadius: 8, padding: '0.45rem 0.875rem',
+            fontSize: '0.75rem', fontWeight: 600, color: 'var(--c-text-2)', cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: 6,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+            boxShadow: 'var(--neu-raised)',
           }}>
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
             Export
           </button>
           <button onClick={resetWarehouse} style={{
             background: 'rgba(254,242,242,0.95)', backdropFilter: 'blur(8px)',
-            border: '1px solid #fca5a5', borderRadius: 8, padding: '0.45rem 0.875rem',
-            fontSize: '0.75rem', fontWeight: 600, color: '#dc2626', cursor: 'pointer',
+            border: '1px solid var(--c-err)', borderRadius: 8, padding: '0.45rem 0.875rem',
+            fontSize: '0.75rem', fontWeight: 600, color: 'var(--c-err)', cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: 6,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+            boxShadow: 'var(--neu-raised)',
           }}>
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
             Reset
@@ -759,51 +760,51 @@ export function SpatialScoringPage() {
 
         {/* Decision Manifest */}
         <div style={{
-          height: 240, background: '#ffffff',
-          borderTop: '1px solid #e2e8f0',
+          height: 240, background: 'var(--c-base)',
+          borderTop: '1px solid var(--c-line-strong)',
           display: 'flex', flexDirection: 'column',
           boxShadow: '0 -4px 15px rgba(0,0,0,0.04)',
           zIndex: 20, flexShrink: 0,
         }}>
           <div style={{
-            padding: '0.5rem 1rem', borderBottom: '1px solid #f1f5f9',
-            background: 'linear-gradient(to right,#f8fafc,#ffffff)',
+            padding: '0.5rem 1rem', borderBottom: '1px solid var(--c-inset)',
+            background: 'var(--c-base)',
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           }}>
-            <h2 style={{ fontSize: '0.65rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            <h2 style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--c-text-2)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
               📋 Decision Manifest & Scoring Engine
             </h2>
             <div style={{ display: 'flex', gap: '0.75rem' }}>
-              <span style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 600 }}>
-                Utilization: <span ref={capTrackerRef} style={{ color: '#2563eb' }}>0 / 0</span>
+              <span style={{ fontSize: '0.65rem', color: 'var(--c-text-2)', fontWeight: 600 }}>
+                Utilization: <span ref={capTrackerRef} style={{ color: 'var(--c-accent)' }}>0 / 0</span>
               </span>
               <button onClick={() => {
                 if (!confirm('Clear placement log?')) return
                 if (manifestRef.current) {
-                  manifestRef.current.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:#94a3b8;font-size:0.85rem;">No packages ingested yet.</td></tr>`
+                  manifestRef.current.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--c-text-3);font-size:0.85rem;">No packages ingested yet.</td></tr>`
                 }
                 placementHistoryRef.current = []
                 showToast('Manifest cleared', 'success')
-              }} style={{ fontSize: '0.65rem', color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+              }} style={{ fontSize: '0.65rem', color: 'var(--c-text-3)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
                 Clear Log
               </button>
-              <button onClick={downloadCSV} style={{ fontSize: '0.65rem', color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+              <button onClick={downloadCSV} style={{ fontSize: '0.65rem', color: 'var(--c-accent)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
                 Export CSV
               </button>
             </div>
           </div>
           <div style={{ flex: 1, overflowY: 'auto' }}>
             <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', fontSize: '0.72rem', whiteSpace: 'nowrap' }}>
-              <thead style={{ background: '#f8fafc', position: 'sticky', top: 0, zIndex: 10, boxShadow: '0 1px 0 #e2e8f0' }}>
+              <thead style={{ background: 'var(--c-inset)', position: 'sticky', top: 0, zIndex: 10, boxShadow: '0 1px 0 var(--c-line-strong)' }}>
                 <tr>
                   {['Timestamp', 'Package ID', 'Location', 'Profile', 'Decision Reasoning', 'Score'].map(h => (
-                    <th key={h} style={{ padding: '0.6rem 1rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.62rem' }}>{h}</th>
+                    <th key={h} style={{ padding: '0.6rem 1rem', fontWeight: 700, color: 'var(--c-text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.62rem' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody ref={manifestRef} style={{ color: '#475569', lineHeight: 1.4 }}>
+              <tbody ref={manifestRef} style={{ color: 'var(--c-text-2)', lineHeight: 1.4 }}>
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8', fontSize: '0.85rem' }}>
+                  <td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: 'var(--c-text-3)', fontSize: '0.85rem' }}>
                     No packages ingested yet. Configure and dispatch to begin.
                   </td>
                 </tr>
@@ -822,32 +823,32 @@ export function SpatialScoringPage() {
       onClick={e => { if (e.target === analyticsModalRef.current && analyticsModalRef.current) analyticsModalRef.current.style.display = 'none' }}
       >
         <div style={{
-          background: '#ffffff', borderRadius: 16, padding: '2rem',
+          background: 'var(--c-base)', borderRadius: 16, padding: '2rem',
           width: '90%', maxWidth: 860, maxHeight: '90vh', overflowY: 'auto',
           boxShadow: '0 25px 50px rgba(0,0,0,0.25)',
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ color: '#2563eb' }}>📊</span> Analytics Dashboard
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--c-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ color: 'var(--c-accent)' }}>📊</span> Analytics Dashboard
             </h2>
             <button onClick={() => { if (analyticsModalRef.current) analyticsModalRef.current.style.display = 'none' }}
-              style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 8, padding: '0.4rem 0.875rem', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, color: '#475569' }}>
+              style={{ background: 'var(--c-inset)', border: '1px solid var(--c-line-strong)', borderRadius: 8, padding: '0.4rem 0.875rem', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, color: 'var(--c-text-2)' }}>
               Close
             </button>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
             {[
-              { label: 'Capacity Utilization', id: 'an-capacity', defaultVal: '0%', accent: '#1e293b' },
-              { label: 'Avg. Travel Distance', id: 'an-distance', defaultVal: '0.0m', accent: '#2563eb' },
-              { label: 'Avg. Optimization Score', id: 'an-score', defaultVal: '100', accent: '#16a34a' },
+              { label: 'Capacity Utilization', id: 'an-capacity', defaultVal: '0%', accent: 'var(--c-text)' },
+              { label: 'Avg. Travel Distance', id: 'an-distance', defaultVal: '0.0m', accent: 'var(--c-accent)' },
+              { label: 'Avg. Optimization Score', id: 'an-score', defaultVal: '100', accent: 'var(--c-ok)' },
             ].map(c => (
-              <div key={c.id} style={{ background: '#f8fafc', borderRadius: 12, padding: '1rem', border: '1px solid #e2e8f0' }}>
-                <p style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>{c.label}</p>
+              <div key={c.id} style={{ background: 'var(--c-inset)', borderRadius: 12, padding: '1rem', border: '1px solid var(--c-line-strong)' }}>
+                <p style={{ fontSize: '0.65rem', color: 'var(--c-text-3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>{c.label}</p>
                 <p id={c.id} style={{ fontSize: '2rem', fontWeight: 800, color: c.accent }}>{c.defaultVal}</p>
                 {c.id === 'an-capacity' && (
-                  <div style={{ height: 6, background: '#e2e8f0', borderRadius: 3, marginTop: 8, overflow: 'hidden' }}>
-                    <div id="an-capacity-bar" style={{ height: '100%', background: 'linear-gradient(90deg,#3b82f6,#2563eb)', width: '0%', transition: 'width 0.4s', borderRadius: 3 }} />
+                  <div style={{ height: 6, background: 'var(--c-line-strong)', borderRadius: 3, marginTop: 8, overflow: 'hidden' }}>
+                    <div id="an-capacity-bar" style={{ height: '100%', background: 'var(--c-accent)', width: '0%', transition: 'width 0.4s', borderRadius: 3 }} />
                   </div>
                 )}
               </div>
@@ -855,12 +856,12 @@ export function SpatialScoringPage() {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-            <div style={{ background: '#f8fafc', borderRadius: 12, padding: '1.25rem', border: '1px solid #e2e8f0' }}>
-              <h3 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b', marginBottom: '1rem' }}>Velocity Distribution</h3>
+            <div style={{ background: 'var(--c-inset)', borderRadius: 12, padding: '1.25rem', border: '1px solid var(--c-line-strong)' }}>
+              <h3 style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--c-text)', marginBottom: '1rem' }}>Velocity Distribution</h3>
               <canvas id="an-velocity-chart" height={200} />
             </div>
-            <div style={{ background: '#f8fafc', borderRadius: 12, padding: '1.25rem', border: '1px solid #e2e8f0' }}>
-              <h3 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b', marginBottom: '1rem' }}>Zone Utilization</h3>
+            <div style={{ background: 'var(--c-inset)', borderRadius: 12, padding: '1.25rem', border: '1px solid var(--c-line-strong)' }}>
+              <h3 style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--c-text)', marginBottom: '1rem' }}>Zone Utilization</h3>
               <canvas id="an-zone-chart" height={200} />
             </div>
           </div>
@@ -876,14 +877,14 @@ export function SpatialScoringPage() {
       onClick={e => { if (e.target === exportModalRef.current && exportModalRef.current) exportModalRef.current.style.display = 'none' }}
       >
         <div style={{
-          background: '#ffffff', borderRadius: 16, padding: '2rem',
+          background: 'var(--c-base)', borderRadius: 16, padding: '2rem',
           width: '90%', maxWidth: 480,
           boxShadow: '0 25px 50px rgba(0,0,0,0.25)',
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>Export Data</h2>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--c-text)' }}>Export Data</h2>
             <button onClick={() => { if (exportModalRef.current) exportModalRef.current.style.display = 'none' }}
-              style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 8, padding: '0.4rem 0.875rem', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, color: '#475569' }}>
+              style={{ background: 'var(--c-inset)', border: '1px solid var(--c-line-strong)', borderRadius: 8, padding: '0.4rem 0.875rem', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, color: 'var(--c-text-2)' }}>
               Close
             </button>
           </div>
@@ -893,7 +894,7 @@ export function SpatialScoringPage() {
               { label: '📊 CSV Export', fn: downloadCSV },
             ].map(b => (
               <button key={b.label} onClick={b.fn} style={{
-                background: 'linear-gradient(135deg,#3b82f6,#2563eb)', color: 'white',
+                background: 'var(--c-accent)', color: 'var(--c-accent-ink)',
                 border: 'none', borderRadius: 10, padding: '1.25rem',
                 fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer',
                 boxShadow: '0 4px 14px rgba(37,99,235,0.35)',
@@ -906,8 +907,8 @@ export function SpatialScoringPage() {
               </button>
             ))}
           </div>
-          <div style={{ background: '#f8fafc', borderRadius: 10, padding: '1rem', fontSize: '0.8rem', color: '#64748b' }}>
-            <p style={{ fontWeight: 700, color: '#1e293b', marginBottom: 6 }}>Export includes:</p>
+          <div style={{ background: 'var(--c-inset)', borderRadius: 10, padding: '1rem', fontSize: '0.8rem', color: 'var(--c-text-2)' }}>
+            <p style={{ fontWeight: 700, color: 'var(--c-text)', marginBottom: 6 }}>Export includes:</p>
             {['All placement records', 'Decision reasoning & scores', 'Warehouse configuration', 'Timestamps'].map(i => (
               <p key={i} style={{ marginBottom: 2 }}>✓ {i}</p>
             ))}

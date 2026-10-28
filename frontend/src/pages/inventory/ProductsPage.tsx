@@ -66,7 +66,7 @@ export function ProductsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-text-primary tracking-tight">Product Catalog</h1>
+          <h1 className="t-page-title">Product Catalog</h1>
           <p className="text-xs text-text-secondary">Master product SKU definitions, weights & dimensions</p>
         </div>
         <Button icon={<Plus className="h-4 w-4" />} onClick={() => setIsModalOpen(true)}>

@@ -1,34 +1,46 @@
-import { useState } from 'react'
-import { Outlet } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { useEffect, useState } from 'react'
+import { Outlet, useLocation } from 'react-router-dom'
 import { GlobalSidebar } from '../components/navigation/GlobalSidebar'
 import { TopHeader } from '../components/navigation/TopHeader'
+import { ErrorBoundary } from '../components/layout/ErrorBoundary'
+import { ToastViewport } from '../components/ui'
+
+const DESKTOP_QUERY = '(min-width: 1024px)'
 
 export function AppLayout() {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  // Desktop: collapse to icon rail. Mobile: slide-in drawer.
+  const [collapsed, setCollapsed] = useState(false)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const location = useLocation()
+
+  useEffect(() => {
+    setDrawerOpen(false)
+  }, [location.pathname])
+
+  const toggleSidebar = () => {
+    if (window.matchMedia(DESKTOP_QUERY).matches) setCollapsed((prev) => !prev)
+    else setDrawerOpen((prev) => !prev)
+  }
 
   return (
-    <div className="min-h-screen bg-bg-primary text-text-primary flex overflow-hidden">
-      {/* Primary Global Navigation Sidebar */}
-      <GlobalSidebar collapsed={sidebarCollapsed} />
+    <div className="flex h-screen overflow-hidden bg-bg-primary text-text-primary">
+      <a href="#main-content" className="skip-link">
+        Skip to content
+      </a>
+      <GlobalSidebar collapsed={collapsed} drawerOpen={drawerOpen} onCloseDrawer={() => setDrawerOpen(false)} />
 
-      {/* Main Content Workspace Shell */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
-        {/* Top Header Navigation */}
-        <TopHeader onToggleSidebar={() => setSidebarCollapsed((prev) => !prev)} />
+      <div className="flex h-screen min-w-0 flex-1 flex-col overflow-hidden">
+        <TopHeader onToggleSidebar={toggleSidebar} drawerOpen={drawerOpen} />
 
-        {/* Dynamic Page Container */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-bg-primary/50">
-          <motion.div
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2 }}
-            className="max-w-7xl mx-auto space-y-6"
-          >
-            <Outlet />
-          </motion.div>
+        <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto px-4 pb-10 pt-4 outline-none md:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl space-y-6">
+            <ErrorBoundary key={location.pathname}>
+              <Outlet />
+            </ErrorBoundary>
+          </div>
         </main>
       </div>
+      <ToastViewport />
     </div>
   )
 }

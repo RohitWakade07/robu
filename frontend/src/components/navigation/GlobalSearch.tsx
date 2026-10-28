@@ -1,38 +1,32 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Package, Bot, ShoppingCart, Warehouse, Layers, ArrowRight } from 'lucide-react'
-import { Modal } from '../ui'
-
-interface SearchItem {
-  id: string
-  title: string
-  subtitle: string
-  type: 'Product' | 'Robot' | 'Order' | 'Warehouse' | 'Page'
-  route: string
-  icon: typeof Package
-}
-
-const searchDataset: SearchItem[] = [
-  { id: '1', title: 'Dashboard', subtitle: 'Operational Command Center', type: 'Page', route: '/dashboard', icon: Warehouse },
-  { id: '2', title: 'Robot Fleet', subtitle: 'Live telemetry & map', type: 'Robot', route: '/robots', icon: Bot },
-  { id: '3', title: 'Robot Vision & Control', subtitle: 'Operator manual controls', type: 'Robot', route: '/robot-fleet', icon: Bot },
-  { id: '4', title: 'Spatial Slotting Engine', subtitle: 'A* Optimization & Slot scoring', type: 'Page', route: '/slotting', icon: Layers },
-  { id: '5', title: 'Slotting Recommendations', subtitle: 'Optimal product relocations', type: 'Page', route: '/slotting/recommendations', icon: Layers },
-  { id: '6', title: 'Product Catalog', subtitle: 'SKU Inventory & Dimensions', type: 'Product', route: '/products', icon: Package },
-  { id: '7', title: 'Customer Orders', subtitle: 'Pipeline & Dispatch', type: 'Order', route: '/orders', icon: ShoppingCart },
-  { id: '8', title: 'Stock Inventory', subtitle: 'Rack placements & quantities', type: 'Product', route: '/inventory', icon: Package },
-  { id: '9', title: 'Shipments Intake', subtitle: 'Inbound crates & verification', type: 'Order', route: '/shipping', icon: ShoppingCart },
-  { id: '10', title: 'User Management', subtitle: 'Roles & access control', type: 'Page', route: '/users', icon: Warehouse },
-]
+import { Search, ArrowRight } from 'lucide-react'
+import { Modal, IconButton } from '../ui'
+import { navSections } from './GlobalSidebar'
+import { useAuthStore } from '../../stores/authStore'
 
 export function GlobalSearch() {
   const [isOpen, setIsOpen] = useState(false)
   const [query, setQuery] = useState('')
   const navigate = useNavigate()
+  const role = useAuthStore((s) => s.user?.role) || 'customer'
+
+  // Search is built from the same role-filtered navigation the sidebar shows.
+  const pages = useMemo(
+    () =>
+      navSections
+        .filter((s) => !s.roles || s.roles.includes(role))
+        .flatMap((s) =>
+          s.items
+            .filter((i) => !i.roles || i.roles.includes(role))
+            .map((i) => ({ ...i, section: s.label })),
+        ),
+    [role],
+  )
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault()
         setIsOpen((prev) => !prev)
       }
@@ -41,73 +35,78 @@ export function GlobalSearch() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  const filtered = searchDataset.filter(
-    (item) =>
-      item.title.toLowerCase().includes(query.toLowerCase()) ||
-      item.subtitle.toLowerCase().includes(query.toLowerCase()) ||
-      item.type.toLowerCase().includes(query.toLowerCase())
-  )
+  const q = query.trim().toLowerCase()
+  const filtered = pages.filter((p) => !q || p.label.toLowerCase().includes(q) || p.section.toLowerCase().includes(q))
 
-  const handleSelect = (route: string) => {
+  const close = () => {
     setIsOpen(false)
     setQuery('')
+  }
+
+  const handleSelect = (route: string) => {
+    close()
     navigate(route)
   }
 
   return (
     <>
       <button
+        type="button"
         onClick={() => setIsOpen(true)}
-        className="hidden md:flex items-center gap-3 bg-bg-secondary hover:bg-bg-elevated text-text-secondary border border-border-primary rounded-lg px-3 py-1.5 text-xs transition-colors cursor-pointer w-64"
+        aria-label="Search pages (Ctrl+K)"
+        className="neu-inset hidden min-h-10 w-60 cursor-pointer items-center gap-3 px-3 text-xs text-text-secondary hover:text-text-primary md:flex"
       >
-        <Search className="h-3.5 w-3.5 text-text-secondary" />
-        <span className="flex-1 text-left">Search platform...</span>
-        <kbd className="font-mono bg-bg-elevated px-1.5 py-0.5 rounded text-[10px] border border-border-primary">Ctrl+K</kbd>
+        <Search className="h-3.5 w-3.5" aria-hidden="true" />
+        <span className="flex-1 text-left">Search pages…</span>
+        <kbd className="rounded px-1.5 py-0.5 font-mono text-[10px] shadow-[var(--neu-flat)]">Ctrl K</kbd>
       </button>
+      <IconButton label="Search pages" className="md:hidden" onClick={() => setIsOpen(true)}>
+        <Search className="h-4 w-4" />
+      </IconButton>
 
-      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="Global Search & Navigation">
+      <Modal isOpen={isOpen} onClose={close} title="Go to page">
         <div className="space-y-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary" aria-hidden="true" />
             <input
               type="text"
-              autoFocus
+              aria-label="Search pages"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Type to search robots, products, orders, or pages..."
-              className="w-full rounded-lg border border-border-primary bg-bg-secondary pl-9 pr-4 py-2.5 text-sm text-text-primary placeholder:text-text-secondary focus:border-action-primary focus:outline-none"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && filtered[0]) handleSelect(filtered[0].route)
+              }}
+              placeholder="Type a page or section name…"
+              className="min-h-10 w-full rounded-[var(--radius-neu-sm)] border border-transparent bg-bg-secondary py-2 pl-9 pr-4 text-sm text-text-primary shadow-[var(--neu-inset)] placeholder:text-text-muted focus-visible:border-action-primary focus-visible:outline-none"
             />
           </div>
 
-          <div className="max-h-72 overflow-y-auto space-y-1 pr-1">
+          <ul className="max-h-72 space-y-1.5 overflow-y-auto pr-1">
             {filtered.length === 0 ? (
-              <p className="text-center py-6 text-xs text-text-secondary">No matching entities found.</p>
+              <li className="py-6 text-center text-sm text-text-secondary">No matching pages.</li>
             ) : (
               filtered.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => handleSelect(item.route)}
-                  className="w-full flex items-center justify-between p-2.5 rounded-lg hover:bg-bg-elevated text-left transition-colors cursor-pointer group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-bg-secondary text-cyan group-hover:text-action-primary transition-colors">
-                      <item.icon className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-text-primary">{item.title}</p>
-                      <p className="text-xs text-text-secondary">{item.subtitle}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-bg-secondary text-text-secondary border border-border-primary">
-                      {item.type}
+                <li key={item.route}>
+                  <button
+                    type="button"
+                    onClick={() => handleSelect(item.route)}
+                    className="group flex min-h-12 w-full cursor-pointer items-center justify-between rounded-[var(--radius-neu-sm)] p-2.5 text-left hover:shadow-[var(--neu-flat)]"
+                  >
+                    <span className="flex items-center gap-3">
+                      <span className="neu-inset flex h-9 w-9 items-center justify-center text-action-primary" aria-hidden="true">
+                        <item.icon className="h-4 w-4" />
+                      </span>
+                      <span>
+                        <span className="block text-sm font-medium text-text-primary">{item.label}</span>
+                        <span className="block text-xs text-text-secondary">{item.section}</span>
+                      </span>
                     </span>
-                    <ArrowRight className="h-3.5 w-3.5 text-text-secondary opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                </button>
+                    <ArrowRight className="h-3.5 w-3.5 text-text-secondary opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100" aria-hidden="true" />
+                  </button>
+                </li>
               ))
             )}
-          </div>
+          </ul>
         </div>
       </Modal>
     </>

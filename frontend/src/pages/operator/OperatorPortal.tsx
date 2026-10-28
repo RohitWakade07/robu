@@ -121,8 +121,8 @@ export function OperatorPortal() {
   }
 
   return (
-    <div className="flex h-full gap-6">
-      <div className="flex-1 glass-panel rounded-xl border border-border-primary overflow-hidden relative flex flex-col">
+    <div className="flex h-full flex-col gap-6 lg:flex-row">
+      <div className="neu-raised relative flex min-h-[22rem] flex-1 flex-col overflow-hidden">
         <div className="p-4 border-b border-border-primary flex justify-between items-center bg-bg-primary/50">
           <h2 className="font-semibold text-text-primary flex items-center gap-2">
             <Navigation className="h-4 w-4 text-cyan" />
@@ -130,7 +130,7 @@ export function OperatorPortal() {
           </h2>
           {mapData && <span className="text-xs text-text-secondary">Resolution: {mapData.resolution} m/px</span>}
         </div>
-        <div className="flex-1 bg-[#020617] relative">
+        <div className="relative flex-1 bg-bg-secondary shadow-[var(--neu-inset)]">
           <canvas 
             ref={canvasRef} 
             width={800} 
@@ -140,19 +140,16 @@ export function OperatorPortal() {
         </div>
       </div>
 
-      <div className="w-80 flex flex-col gap-4">
-        <div className="glass-panel rounded-xl border border-border-primary p-4">
+      <div className="flex w-full flex-col gap-4 lg:w-80">
+        <div className="neu-raised p-4">
           <h3 className="font-semibold text-text-primary mb-3">Select Robot</h3>
           <div className="space-y-2">
             {robots?.map(robot => (
               <button
                 key={robot.id}
                 onClick={() => setActiveRobotId(robot.id)}
-                className={`w-full text-left px-3 py-2 rounded-lg text-sm flex justify-between items-center transition-colors ${
-                  activeRobotId === robot.id 
-                    ? 'bg-action-primary/20 border border-action-primary' 
-                    : 'bg-bg-elevated border border-transparent hover:border-border-primary'
-                }`}
+                aria-pressed={activeRobotId === robot.id}
+                className="neu-pressable flex min-h-10 w-full cursor-pointer items-center justify-between rounded-[var(--radius-neu-sm)] px-3 py-2 text-left text-sm text-text-primary" 
               >
                 <span>{robot.name}</span>
                 <StatusBadge status={robot.status} />
@@ -163,20 +160,20 @@ export function OperatorPortal() {
         </div>
 
         {activeRobot && (
-          <div className="glass-panel rounded-xl border border-border-primary flex-1 flex flex-col">
+          <div className="neu-raised flex-1 flex flex-col">
              <div className="p-4 border-b border-border-primary">
                 <h3 className="font-semibold text-text-primary">{activeRobot.name} Telemetry</h3>
              </div>
              
              <div className="p-4 space-y-4 flex-1">
                 <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div className="p-3 bg-bg-elevated rounded-lg">
+                  <div className="neu-inset p-3">
                     <div className="text-text-secondary text-xs flex items-center gap-1 mb-1">
                       <Battery className="h-3 w-3"/> Battery
                     </div>
                     <div className="text-text-primary font-medium">{activeRobot.battery_level.toFixed(1)}%</div>
                   </div>
-                  <div className="p-3 bg-bg-elevated rounded-lg">
+                  <div className="neu-inset p-3">
                     <div className="text-text-secondary text-xs flex items-center gap-1 mb-1">
                       <Activity className="h-3 w-3"/> Status
                     </div>
@@ -184,7 +181,7 @@ export function OperatorPortal() {
                   </div>
                 </div>
 
-                <div className="p-3 bg-bg-elevated rounded-lg text-sm">
+                <div className="neu-inset p-3 text-sm">
                    <div className="text-text-secondary text-xs mb-1">Odometry</div>
                    <div className="font-mono text-cyan text-xs">
                      X: {robotPositions[activeRobot.id]?.x?.toFixed(2) || '0.00'} <br/>
@@ -198,15 +195,15 @@ export function OperatorPortal() {
                   
                   <div className="grid grid-cols-3 gap-2 w-48 mx-auto mb-6">
                     <div />
-                    <Button variant="secondary" className="p-2 h-12" onClick={() => handleMove('up')}>↑</Button>
+                    <Button variant="secondary" aria-label="Move forward" className="h-12 p-2" onClick={() => handleMove('up')}>↑</Button>
                     <div />
-                    <Button variant="secondary" className="p-2 h-12" onClick={() => handleMove('left')}>⟲</Button>
-                    <Button variant="secondary" className="p-2 h-12" onClick={() => handleMove('down')}>↓</Button>
-                    <Button variant="secondary" className="p-2 h-12" onClick={() => handleMove('right')}>⟳</Button>
+                    <Button variant="secondary" aria-label="Rotate left" className="h-12 p-2" onClick={() => handleMove('left')}>⟲</Button>
+                    <Button variant="secondary" aria-label="Move backward" className="h-12 p-2" onClick={() => handleMove('down')}>↓</Button>
+                    <Button variant="secondary" aria-label="Rotate right" className="h-12 p-2" onClick={() => handleMove('right')}>⟳</Button>
                   </div>
 
                   <Button 
-                    className="w-full bg-error/10 text-error border-error/50 hover:bg-error hover:text-white"
+                    variant="danger" className="w-full"
                     onClick={handleEStop}
                   >
                     <AlertOctagon className="h-4 w-4 mr-2" />

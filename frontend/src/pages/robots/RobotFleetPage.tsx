@@ -4,13 +4,13 @@ export function RobotFleetPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-xl font-bold text-text-primary tracking-tight">Robot Vision & Teleoperation</h1>
+        <h1 className="t-page-title">Robot Vision & Teleoperation</h1>
         <p className="text-xs text-text-secondary">
           Live SLAM map positioning, odometry tracking, manual teleop velocity & emergency fleet control
         </p>
       </div>
 
-      <div className="h-[calc(100vh-210px)] min-h-[500px]">
+      <div className="min-h-[500px] lg:h-[calc(100vh-13rem)]">
         <OperatorPortal />
       </div>
     </div>

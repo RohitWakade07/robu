@@ -46,25 +46,6 @@ async def list_shipments(
         raise HTTPException(status_code=400, detail="Database error processing request")
 
 
-@router.get("/{shipment_id}", response_model=ShipmentResponse)
-async def get_shipment(
-    shipment_id: str,
-    db: Annotated[AsyncSession, Depends(get_db)],
-    _: Annotated[User, Depends(require_roles(UserRole.WAREHOUSE_OPERATOR, UserRole.ADMINISTRATOR))],
-):
-    service = ShipmentService(db)
-    try:
-        shipment = await service.get_shipment(shipment_id)
-        if not shipment:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shipment not found")
-        return shipment
-    except HTTPException:
-        raise
-    except SQLAlchemyError:
-        await db.rollback()
-        raise HTTPException(status_code=400, detail="Database error processing request")
-
-
 class InventoryResponse(BaseModel):
     id: str
     product_id: str
@@ -93,3 +74,21 @@ async def list_inventory(
         for item in result.scalars().all()
     ]
 
+
+@router.get("/{shipment_id}", response_model=ShipmentResponse)
+async def get_shipment(
+    shipment_id: str,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    _: Annotated[User, Depends(require_roles(UserRole.WAREHOUSE_OPERATOR, UserRole.ADMINISTRATOR))],
+):
+    service = ShipmentService(db)
+    try:
+        shipment = await service.get_shipment(shipment_id)
+        if not shipment:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shipment not found")
+        return shipment
+    except HTTPException:
+        raise
+    except SQLAlchemyError:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail="Database error processing request")

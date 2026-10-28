@@ -1,44 +1,28 @@
-import { UserPlus } from 'lucide-react'
-import { Card, DataTable, type Column, StatusBadge, Button } from '../../components/ui'
+import { Card, DataTable, StatusBadge, PageHeader, Notice, type Column } from '../../components/ui'
+import { useAuthStore } from '../../stores/authStore'
+import type { User } from '../../types'
+
+type Row = User & Record<string, unknown>
 
 export function UsersPage() {
-  const usersData = [
-    { name: 'Rohit Wakade (Admin)', email: 'admin@nexus.com', role: 'administrator', status: 'active', lastLogin: 'Today at 10:45 AM' },
-    { name: 'Warehouse Operator', email: 'operator@nexus.com', role: 'warehouse_operator', status: 'active', lastLogin: 'Yesterday' },
-    { name: 'Customer User', email: 'customer@nexus.com', role: 'customer', status: 'active', lastLogin: '3 days ago' },
-  ]
+  const user = useAuthStore((s) => s.user)
 
-  const columns: Column<Record<string, unknown>>[] = [
-    {
-      header: 'User Full Name',
-      cell: (row) => <span className="font-semibold text-xs text-text-primary">{String(row.name)}</span>,
-    },
-    {
-      header: 'Email Address',
-      cell: (row) => <span className="font-mono text-xs text-text-secondary">{String(row.email)}</span>,
-    },
-    {
-      header: 'Role Permission Level',
-      cell: (row) => <StatusBadge status={String(row.role)} />,
-    },
-    {
-      header: 'Last Session Login',
-      cell: (row) => <span className="font-mono text-xs text-text-secondary">{String(row.lastLogin)}</span>,
-    },
+  const columns: Column<Row>[] = [
+    { header: 'Name', accessorKey: 'full_name', sortable: true, cell: (r) => <span className="font-semibold text-text-primary">{r.full_name}</span> },
+    { header: 'Email', accessorKey: 'email', sortable: true, cell: (r) => <span className="font-mono text-xs text-text-secondary">{r.email}</span> },
+    { header: 'Role', cell: (r) => <StatusBadge status={r.role} /> },
+    { header: 'Account', cell: (r) => <StatusBadge status={r.is_active ? 'active' : 'offline'} /> },
   ]
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-text-primary tracking-tight">User & Role Permission Management</h1>
-          <p className="text-xs text-text-secondary">Manage platform access, operator roles & security policies</p>
-        </div>
-        <Button icon={<UserPlus className="h-4 w-4" />}>Provision New User</Button>
-      </div>
-
+      <PageHeader title="User Management" description="Platform accounts and role permissions." />
+      <Notice tone="info" title="Only your own account is listed">
+        The API provides <code className="font-mono">/auth/me</code> and <code className="font-mono">/auth/register</code> but no endpoint to list, edit or deactivate users, so
+        organization-wide user management needs a backend addition.
+      </Notice>
       <Card>
-        <DataTable columns={columns} data={usersData as unknown as Record<string, unknown>[]} />
+        <DataTable caption="Users" columns={columns} data={user ? [user as Row] : []} emptyTitle="No session user" />
       </Card>
     </div>
   )

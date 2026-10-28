@@ -1,45 +1,41 @@
-import { Plus } from 'lucide-react'
-import { Card, DataTable, type Column, Button } from '../../components/ui'
+import { useQuery } from '@tanstack/react-query'
+import { api } from '../../api/client'
+import { Card, DataTable, PageHeader, ErrorState, LoadingSpinner, Notice, type Column } from '../../components/ui'
+
+interface CategoryRow extends Record<string, unknown> {
+  categoryId: string
+  products: number
+}
 
 export function CategoriesPage() {
-  const categoriesData = [
-    { name: 'Electronics & Components', code: 'CAT-01', items: 42, zone: 'Standard Zone A' },
-    { name: 'Cold Storage / Pharmaceuticals', code: 'CAT-02', items: 18, zone: 'Cold Zone B' },
-    { name: 'Hazardous Materials', code: 'CAT-03', items: 8, zone: 'Hazmat Cage C' },
-    { name: 'Fast Moving Consumer Goods', code: 'CAT-04', items: 124, zone: 'Golden Zone Pick' },
-  ]
+  const products = useQuery({ queryKey: ['products'], queryFn: api.products.list })
 
-  const columns: Column<Record<string, unknown>>[] = [
-    {
-      header: 'Category Code',
-      cell: (row) => <span className="font-mono text-xs text-cyan font-semibold">{String(row.code)}</span>,
-    },
-    {
-      header: 'Category Name',
-      cell: (row) => <span className="font-medium text-xs text-text-primary">{String(row.name)}</span>,
-    },
-    {
-      header: 'SKUs Tagged',
-      cell: (row) => <span className="font-mono text-xs text-text-primary">{Number(row.items)} items</span>,
-    },
-    {
-      header: 'Default Storage Zone',
-      cell: (row) => <span className="text-xs text-text-secondary">{String(row.zone)}</span>,
-    },
+  const counts = new Map<string, number>()
+  for (const p of products.data ?? []) {
+    const key = p.category_id ?? 'Uncategorized'
+    counts.set(key, (counts.get(key) ?? 0) + 1)
+  }
+  const rows: CategoryRow[] = [...counts].map(([categoryId, n]) => ({ categoryId, products: n }))
+
+  const columns: Column<CategoryRow>[] = [
+    { header: 'Category', accessorKey: 'categoryId', sortable: true, cell: (r) => <span className="font-mono text-xs font-semibold text-text-primary">{r.categoryId}</span> },
+    { header: 'Products', accessorKey: 'products', sortable: true, cell: (r) => <span className="t-numeric text-xs text-text-primary">{r.products}</span> },
   ]
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-text-primary tracking-tight">Product Categories</h1>
-          <p className="text-xs text-text-secondary">Inventory classification & zone default mappings</p>
-        </div>
-        <Button icon={<Plus className="h-4 w-4" />}>New Category</Button>
-      </div>
-
+      <PageHeader title="Product Categories" description="Products grouped by their category reference." />
+      <Notice tone="info" title="Read-only view">
+        The API has no category entity (names, zone defaults, create/edit), so categories are derived from each product's <code className="font-mono">category_id</code>.
+      </Notice>
       <Card>
-        <DataTable columns={columns} data={categoriesData as unknown as Record<string, unknown>[]} />
+        {products.isLoading ? (
+          <LoadingSpinner label="Loading categories" />
+        ) : products.isError ? (
+          <ErrorState title="Could not load products" error={products.error} onRetry={() => products.refetch()} />
+        ) : (
+          <DataTable caption="Categories" columns={columns} data={rows} emptyTitle="No categories" emptyDescription="Products have not been assigned categories yet." />
+        )}
       </Card>
     </div>
   )

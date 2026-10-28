@@ -31,15 +31,15 @@ interface StatCardProps {
   accent?: string
 }
 
-function StatCard({ label, value, sub, accent = '#1e293b' }: StatCardProps) {
+function StatCard({ label, value, sub, accent = 'var(--c-text)' }: StatCardProps) {
   return (
     <div style={{
-      background: '#ffffff', borderRadius: 14, padding: '1.25rem 1.5rem',
-      border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+      background: 'var(--c-base)', borderRadius: 14, padding: '1.25rem 1.5rem',
+      border: '1px solid var(--c-line-strong)', boxShadow: 'var(--neu-raised)',
     }}>
-      <p style={{ fontSize: '0.65rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{label}</p>
+      <p style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--c-text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{label}</p>
       <p style={{ fontSize: '2.25rem', fontWeight: 800, color: accent, lineHeight: 1 }}>{value}</p>
-      {sub && <p style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: 4 }}>{sub}</p>}
+      {sub && <p style={{ fontSize: '0.72rem', color: 'var(--c-text-3)', marginTop: 4 }}>{sub}</p>}
     </div>
   )
 }
@@ -153,27 +153,27 @@ export function AnalyticsPage() {
   }
 
   const cardStyle: React.CSSProperties = {
-    background: '#ffffff', borderRadius: 14, padding: '1.25rem',
-    border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+    background: 'var(--c-base)', borderRadius: 14, padding: '1.25rem',
+    border: '1px solid var(--c-line-strong)', boxShadow: 'var(--neu-raised)',
   }
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '2rem', background: '#f8fafc', fontFamily: 'Inter,sans-serif' }}>
+    <div style={{ flex: 1, overflowY: 'auto', padding: '2rem', background: 'var(--c-inset)', fontFamily: 'Inter,sans-serif' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
           <div>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', marginBottom: 4 }}>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--c-text)', marginBottom: 4 }}>
               📊 Analytics Dashboard
             </h1>
-            <p style={{ fontSize: '0.875rem', color: '#64748b' }}>
+            <p style={{ fontSize: '0.875rem', color: 'var(--c-text-2)' }}>
               Live metrics from the Spatial Scoring Engine session
             </p>
           </div>
           <button onClick={refresh} style={{
-            background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 10,
-            padding: '0.6rem 1.25rem', fontSize: '0.8rem', fontWeight: 600, color: '#475569',
+            background: 'var(--c-base)', border: '1px solid var(--c-line-strong)', borderRadius: 10,
+            padding: '0.6rem 1.25rem', fontSize: '0.8rem', fontWeight: 600, color: 'var(--c-text-2)',
             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
             boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
           }}>
@@ -184,10 +184,10 @@ export function AnalyticsPage() {
 
         {/* Stat cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1rem', marginBottom: '2rem' }}>
-          <StatCard label="Total Packages" value={stats.packages} sub="Ingested this session" accent="#0f172a" />
-          <StatCard label="Avg. Score" value={stats.avgScore || '—'} sub="Optimization quality" accent="#2563eb" />
-          <StatCard label="Avg. Travel" value={stats.packages ? `${stats.avgDist}m` : '—'} sub="Approx. dock distance" accent="#7c3aed" />
-          <StatCard label="Session Active" value={stats.packages > 0 ? 'Yes' : 'No'} sub="WMS Engine" accent={stats.packages > 0 ? '#16a34a' : '#94a3b8'} />
+          <StatCard label="Total Packages" value={stats.packages} sub="Ingested this session" accent="var(--c-text)" />
+          <StatCard label="Avg. Score" value={stats.avgScore || '—'} sub="Optimization quality" accent="var(--c-accent)" />
+          <StatCard label="Avg. Travel" value={stats.packages ? `${stats.avgDist}m` : '—'} sub="Approx. dock distance" accent="var(--c-violet)" />
+          <StatCard label="Session Active" value={stats.packages > 0 ? 'Yes' : 'No'} sub="WMS Engine" accent={stats.packages > 0 ? 'var(--c-ok)' : 'var(--c-text-3)'} />
         </div>
 
         {stats.packages === 0 ? (
@@ -195,13 +195,13 @@ export function AnalyticsPage() {
             ...cardStyle, textAlign: 'center', padding: '4rem',
           }}>
             <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📦</div>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#475569', marginBottom: 8 }}>No data yet</h2>
-            <p style={{ color: '#94a3b8', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--c-text-2)', marginBottom: 8 }}>No data yet</h2>
+            <p style={{ color: 'var(--c-text-3)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
               Go to the Slotting Engine, ingest some packages, and come back here to see charts.
             </p>
             <a href="/wms" style={{
-              display: 'inline-block', background: 'linear-gradient(135deg,#3b82f6,#2563eb)',
-              color: '#fff', textDecoration: 'none', borderRadius: 8, padding: '0.6rem 1.5rem',
+              display: 'inline-block', background: 'var(--c-accent)',
+              color: 'var(--c-base)', textDecoration: 'none', borderRadius: 8, padding: '0.6rem 1.5rem',
               fontWeight: 700, fontSize: '0.875rem',
             }}>
               Go to Slotting Engine →
@@ -212,28 +212,28 @@ export function AnalyticsPage() {
             {/* Charts row */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
               <div style={cardStyle}>
-                <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1e293b', marginBottom: '1rem' }}>Velocity Distribution</h3>
+                <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--c-text)', marginBottom: '1rem' }}>Velocity Distribution</h3>
                 <div style={{ height: 220 }}><canvas ref={velRef} /></div>
               </div>
               <div style={cardStyle}>
-                <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1e293b', marginBottom: '1rem' }}>Zone Assignments</h3>
+                <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--c-text)', marginBottom: '1rem' }}>Zone Assignments</h3>
                 <div style={{ height: 220 }}><canvas ref={zoneRef} /></div>
               </div>
               <div style={cardStyle}>
-                <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1e293b', marginBottom: '1rem' }}>Handling Unit Mix</h3>
+                <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--c-text)', marginBottom: '1rem' }}>Handling Unit Mix</h3>
                 <div style={{ height: 220 }}><canvas ref={handlingRef} /></div>
               </div>
             </div>
 
             {/* Recent placements table */}
             <div style={cardStyle}>
-              <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1e293b', marginBottom: '1rem' }}>Recent Placements</h3>
+              <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--c-text)', marginBottom: '1rem' }}>Recent Placements</h3>
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
                   <thead>
-                    <tr style={{ borderBottom: '2px solid #f1f5f9' }}>
+                    <tr style={{ borderBottom: '2px solid var(--c-inset)' }}>
                       {['Package', 'Location', 'Velocity', 'Handling', 'Score', 'Reasoning'].map(h => (
-                        <th key={h} style={{ padding: '0.6rem 0.875rem', textAlign: 'left', fontWeight: 700, color: '#94a3b8', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</th>
+                        <th key={h} style={{ padding: '0.6rem 0.875rem', textAlign: 'left', fontWeight: 700, color: 'var(--c-text-3)', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -242,23 +242,23 @@ export function AnalyticsPage() {
                       const velColor = r.params?.velocity === 'High' ? '#dc2626' : r.params?.velocity === 'Low' ? '#2563eb' : '#d97706'
                       const velBg = r.params?.velocity === 'High' ? '#fef2f2' : r.params?.velocity === 'Low' ? '#eff6ff' : '#fffbeb'
                       return (
-                        <tr key={r.id} style={{ borderBottom: '1px solid #f8fafc' }}
-                          onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')}
+                        <tr key={r.id} style={{ borderBottom: '1px solid var(--c-inset)' }}
+                          onMouseEnter={e => (e.currentTarget.style.background = 'var(--c-inset)')}
                           onMouseLeave={e => (e.currentTarget.style.background = '')}>
-                          <td style={{ padding: '0.6rem 0.875rem', fontFamily: 'monospace', fontWeight: 700, color: '#0f172a' }}>
+                          <td style={{ padding: '0.6rem 0.875rem', fontFamily: 'monospace', fontWeight: 700, color: 'var(--c-text)' }}>
                             PKG-{String(r.id).padStart(4, '0')}
                           </td>
-                          <td style={{ padding: '0.6rem 0.875rem', fontFamily: 'monospace', color: '#2563eb', fontWeight: 600 }}>{r.slot}</td>
+                          <td style={{ padding: '0.6rem 0.875rem', fontFamily: 'monospace', color: 'var(--c-accent)', fontWeight: 600 }}>{r.slot}</td>
                           <td style={{ padding: '0.6rem 0.875rem' }}>
                             <span style={{ background: velBg, color: velColor, padding: '0.2rem 0.5rem', borderRadius: 4, fontWeight: 700, fontSize: '0.65rem' }}>
                               {r.params?.velocity}
                             </span>
                           </td>
-                          <td style={{ padding: '0.6rem 0.875rem', color: '#475569' }}>{r.params?.handling}</td>
-                          <td style={{ padding: '0.6rem 0.875rem', fontWeight: 700, color: (r.score || 0) >= 800 ? '#16a34a' : (r.score || 0) >= 500 ? '#2563eb' : '#64748b' }}>
+                          <td style={{ padding: '0.6rem 0.875rem', color: 'var(--c-text-2)' }}>{r.params?.handling}</td>
+                          <td style={{ padding: '0.6rem 0.875rem', fontWeight: 700, color: (r.score || 0) >= 800 ? 'var(--c-ok)' : (r.score || 0) >= 500 ? 'var(--c-accent)' : 'var(--c-text-2)' }}>
                             {r.score}
                           </td>
-                          <td style={{ padding: '0.6rem 0.875rem', color: '#64748b', maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <td style={{ padding: '0.6rem 0.875rem', color: 'var(--c-text-2)', maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {r.reason}
                           </td>
                         </tr>

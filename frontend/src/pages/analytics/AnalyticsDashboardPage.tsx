@@ -1,56 +1,68 @@
-import { BarChart3, TrendingUp, DollarSign, Activity } from 'lucide-react'
-import { Card, MetricCard } from '../../components/ui'
+import { useQuery } from '@tanstack/react-query'
+import { BarChart3, Battery, DollarSign, ShoppingCart } from 'lucide-react'
+import { api } from '../../api/client'
+import { Card, MetricCard, PageHeader, LoadingSpinner, ErrorState, EmptyState } from '../../components/ui'
+
+function BarList({ items, unit = '' }: { items: { label: string; value: number }[]; unit?: string }) {
+  const max = Math.max(1, ...items.map((i) => i.value))
+  return (
+    <ul className="space-y-3">
+      {items.map((item) => (
+        <li key={item.label}>
+          <div className="mb-1 flex items-baseline justify-between gap-3 text-xs">
+            <span className="truncate font-medium capitalize text-text-primary">{item.label}</span>
+            <span className="t-numeric text-text-secondary">
+              {item.value}
+              {unit}
+            </span>
+          </div>
+          <div className="neu-inset h-3 overflow-hidden !rounded-full" role="presentation">
+            <div className="h-full rounded-full bg-action-primary" style={{ width: `${(item.value / max) * 100}%` }} />
+          </div>
+        </li>
+      ))}
+    </ul>
+  )
+}
 
 export function AnalyticsDashboardPage() {
+  const orders = useQuery({ queryKey: ['orders'], queryFn: api.orders.list })
+  const robots = useQuery({ queryKey: ['robots'], queryFn: api.robots.list })
+
+  if (orders.isLoading || robots.isLoading) return <LoadingSpinner label="Loading analytics" />
+  if (orders.isError) return <ErrorState title="Could not load orders" error={orders.error} onRetry={() => orders.refetch()} />
+
+  const orderList = orders.data ?? []
+  const robotList = robots.data ?? []
+  const totalValue = orderList.reduce((sum, o) => sum + Number(o.total_amount || 0), 0)
+  const avgBattery = robotList.length ? robotList.reduce((s, r) => s + Number(r.battery_level || 0), 0) / robotList.length : null
+
+  const byStatus = new Map<string, number>()
+  for (const o of orderList) byStatus.set(o.status, (byStatus.get(o.status) ?? 0) + 1)
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-text-primary tracking-tight">Operational Analytics Dashboard</h1>
-        <p className="text-xs text-text-secondary">High-level throughput, picker performance, inventory turnover & fleet uptime</p>
+      <PageHeader title="Operational Analytics" description="Figures computed from live order and robot data." />
+
+      <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+        <MetricCard label="Total orders" value={orderList.length} icon={<ShoppingCart className="h-5 w-5" />} accent="cyan" />
+        <MetricCard label="Order value" value={`$${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} icon={<DollarSign className="h-5 w-5" />} accent="amber" />
+        <MetricCard label="Robots" value={robotList.length} icon={<BarChart3 className="h-5 w-5" />} accent="electric" />
+        <MetricCard label="Avg battery" value={avgBattery == null ? '—' : `${avgBattery.toFixed(0)}%`} icon={<Battery className="h-5 w-5" />} accent="green" />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard label="Fulfillment Velocity" value="48 orders/hr" icon={<TrendingUp className="h-5 w-5" />} accent="cyan" />
-        <MetricCard label="Average Pick Distance" value="18.2 meters" icon={<Activity className="h-5 w-5" />} accent="green" />
-        <MetricCard label="Fleet Operational Uptime" value="99.4%" icon={<Activity className="h-5 w-5" />} accent="electric" />
-        <MetricCard label="Monthly Shipping Value" value="$42,850.00" icon={<DollarSign className="h-5 w-5" />} accent="amber" />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="h-64 flex flex-col justify-between">
-          <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
-            <BarChart3 className="h-4 w-4 text-cyan" />
-            Fulfillment Throughput (Orders per Hour)
-          </h3>
-          <div className="flex-1 flex items-end justify-between gap-2 pt-6 px-4">
-            {[32, 45, 28, 56, 42, 60, 48].map((val, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                <div
-                  className="w-full bg-cyan/20 border border-cyan/40 rounded-t transition-all hover:bg-cyan/40"
-                  style={{ height: `${val * 2}px` }}
-                />
-                <span className="text-[10px] font-mono text-text-secondary">H0{i + 1}</span>
-              </div>
-            ))}
-          </div>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card>
+          <h2 className="t-section-title mb-5">Orders by status</h2>
+          {byStatus.size === 0 ? <EmptyState title="No orders yet" /> : <BarList items={[...byStatus].map(([label, value]) => ({ label, value }))} />}
         </Card>
-
-        <Card className="h-64 flex flex-col justify-between">
-          <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
-            <Activity className="h-4 w-4 text-action-primary" />
-            AMR Battery Efficiency & Utilization
-          </h3>
-          <div className="flex-1 flex items-end justify-between gap-2 pt-6 px-4">
-            {[85, 78, 92, 88, 95, 90, 94].map((val, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                <div
-                  className="w-full bg-action-primary/20 border border-action-primary/40 rounded-t transition-all hover:bg-action-primary/40"
-                  style={{ height: `${val * 1.8}px` }}
-                />
-                <span className="text-[10px] font-mono text-text-secondary">D0{i + 1}</span>
-              </div>
-            ))}
-          </div>
+        <Card>
+          <h2 className="t-section-title mb-5">Robot battery levels</h2>
+          {robotList.length === 0 ? (
+            <EmptyState title="No robots" description={robots.isError ? 'Robot data could not be loaded.' : 'Register robots to see battery levels.'} />
+          ) : (
+            <BarList items={robotList.map((r) => ({ label: r.name, value: Math.round(Number(r.battery_level || 0)) }))} unit="%" />
+          )}
         </Card>
       </div>
     </div>

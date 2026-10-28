@@ -1,4 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+
+from app.core.deps import require_roles
+from app.core.enums import UserRole
 
 from app.api.v1 import admin, auth, customer, warehouse, robots, map, slotting, robot_communication
 
@@ -9,5 +12,11 @@ api_router.include_router(warehouse.router)
 api_router.include_router(admin.router)
 api_router.include_router(robots.router)
 api_router.include_router(map.router)
-api_router.include_router(slotting.router, prefix="/slotting", tags=["Slotting Engine"])
+# Slotting endpoints read/write warehouse placement data: staff only.
+api_router.include_router(
+    slotting.router,
+    prefix="/slotting",
+    tags=["Slotting Engine"],
+    dependencies=[Depends(require_roles(UserRole.ADMINISTRATOR, UserRole.WAREHOUSE_OPERATOR))],
+)
 api_router.include_router(robot_communication.router)

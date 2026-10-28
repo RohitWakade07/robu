@@ -119,7 +119,7 @@ export function RobotTasksPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-text-primary tracking-tight">ROS 2 Robot Task Pipeline</h1>
+          <h1 className="t-page-title">ROS 2 Robot Task Pipeline</h1>
           <p className="text-xs text-text-secondary">Bidirectional WMS JSON Message Pipeline & Real-Time Telemetry Bridge</p>
         </div>
         <Button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2">

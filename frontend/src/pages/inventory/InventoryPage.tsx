@@ -48,7 +48,7 @@ export function InventoryPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-text-primary tracking-tight">Warehouse Stock Inventory</h1>
+        <h1 className="t-page-title">Warehouse Stock Inventory</h1>
         <p className="text-xs text-text-secondary">Synchronized inventory counts, rack assignments & demand classifications</p>
       </div>
 

@@ -1,73 +1,76 @@
-import { Sparkles } from 'lucide-react'
-import { Card, DataTable, type Column, Button } from '../../components/ui'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Sparkles, ListChecks } from 'lucide-react'
+import { api } from '../../api/client'
+import { Card, DataTable, Button, PageHeader, ErrorState, LoadingSpinner, toast, type Column } from '../../components/ui'
+
+type Recommendation = Awaited<ReturnType<typeof api.slotting.recommendations>>[number] & Record<string, unknown>
 
 export function RecommendationsPage() {
-  const recommendationsData = [
-    {
-      sku: 'SKU-001 (Fast Mover)',
-      currentLoc: 'Reserve Zone C-04',
-      recLoc: 'Golden Zone A-01',
-      currentScore: 0.42,
-      recScore: 0.95,
-      gain: '+0.53 (+126%)',
-      reason: 'Top 80% revenue contribution (Class AX). Proximity to Shipping Zone.',
-      priority: 'Highest',
-    },
-    {
-      sku: 'SKU-004 / SKU-012 Pair',
-      currentLoc: 'Dispersed Racks',
-      recLoc: 'Adjacent Slots A-02/A-03',
-      currentScore: 0.55,
-      recScore: 0.88,
-      gain: '+0.33 (+60%)',
-      reason: 'High product affinity (Jaccard 0.82). Frequently co-ordered in single baskets.',
-      priority: 'High',
-    },
-  ]
+  const queryClient = useQueryClient()
+  const recs = useQuery({ queryKey: ['slotting-recommendations'], queryFn: api.slotting.recommendations })
+  const products = useQuery({ queryKey: ['products'], queryFn: api.products.list })
 
-  const columns: Column<Record<string, unknown>>[] = [
-    {
-      header: 'Product / SKU',
-      cell: (row) => <span className="font-semibold text-xs text-text-primary">{String(row.sku)}</span>,
+  const skuById = new Map((products.data ?? []).map((p) => [p.id, p.sku]))
+
+  const optimize = useMutation({
+    mutationFn: api.slotting.optimize,
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['slotting-recommendations'] })
+      toast.success(`Optimizer finished: ${res.recommendations_generated} recommendations generated.`)
     },
+    onError: (err: Error) => toast.error(`Optimizer failed: ${err.message}`),
+  })
+
+  const reslot = useMutation({
+    mutationFn: api.slotting.reslot,
+    onSuccess: (res) => toast.success(`${res.tasks_generated} relocation tasks generated.`),
+    onError: (err: Error) => toast.error(`Could not generate tasks: ${err.message}`),
+  })
+
+  const columns: Column<Recommendation>[] = [
     {
-      header: 'Current Rack Location',
-      cell: (row) => <span className="font-mono text-xs text-text-secondary">{String(row.currentLoc)}</span>,
+      header: 'SKU',
+      sortable: true,
+      sortValue: (r) => skuById.get(r.product_id) ?? r.product_id,
+      cell: (r) => <span className="font-mono text-xs font-semibold text-text-primary">{skuById.get(r.product_id) ?? r.product_id}</span>,
     },
-    {
-      header: 'Recommended Slot',
-      cell: (row) => <span className="font-mono text-xs text-cyan font-semibold">{String(row.recLoc)}</span>,
-    },
-    {
-      header: 'Score Gain',
-      cell: (row) => <span className="font-mono text-xs text-success font-bold">{String(row.gain)}</span>,
-    },
-    {
-      header: 'Optimization Rationale',
-      cell: (row) => <span className="text-xs text-text-secondary max-w-xs block">{String(row.reason)}</span>,
-    },
-    {
-      header: 'Action',
-      cell: () => (
-        <Button variant="secondary" className="py-1 px-2 text-xs">
-          Generate Task
-        </Button>
-      ),
-    },
+    { header: 'Recommended slot', accessorKey: 'slot_id', sortable: true, cell: (r) => <span className="font-mono text-xs font-semibold text-action-primary">{r.slot_id}</span> },
+    { header: 'Priority', accessorKey: 'priority_score', sortable: true, cell: (r) => <span className="t-numeric text-xs text-text-primary">{Number(r.priority_score).toFixed(2)}</span> },
+    { header: 'Slot score', accessorKey: 'slot_score', sortable: true, cell: (r) => <span className="t-numeric text-xs text-success">{Number(r.slot_score).toFixed(2)}</span> },
+    { header: 'Rationale', cell: (r) => <span className="block max-w-sm text-xs text-text-secondary">{r.reason || '—'}</span> },
   ]
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-text-primary tracking-tight">Slotting Recommendations</h1>
-          <p className="text-xs text-text-secondary">AI & heuristic relocations to minimize total picking & replenishment travel</p>
-        </div>
-        <Button icon={<Sparkles className="h-4 w-4" />}>Run Global Optimizer</Button>
-      </div>
+      <PageHeader
+        title="Slotting Recommendations"
+        description="Product-to-slot assignments produced by the slotting optimizer to minimize picking and replenishment travel."
+        actions={
+          <>
+            <Button variant="outline" icon={<ListChecks className="h-4 w-4" />} loading={reslot.isPending} onClick={() => reslot.mutate()}>
+              Generate relocation tasks
+            </Button>
+            <Button icon={<Sparkles className="h-4 w-4" />} loading={optimize.isPending} onClick={() => optimize.mutate()}>
+              Run optimizer
+            </Button>
+          </>
+        }
+      />
 
       <Card>
-        <DataTable columns={columns} data={recommendationsData as unknown as Record<string, unknown>[]} />
+        {recs.isLoading ? (
+          <LoadingSpinner label="Loading recommendations" />
+        ) : recs.isError ? (
+          <ErrorState title="Could not load recommendations" error={recs.error} onRetry={() => recs.refetch()} />
+        ) : (
+          <DataTable
+            caption="Slotting recommendations"
+            columns={columns}
+            data={(recs.data ?? []) as Recommendation[]}
+            emptyTitle="No recommendations yet"
+            emptyDescription="Run the optimizer to generate slot assignments for your products."
+          />
+        )}
       </Card>
     </div>
   )

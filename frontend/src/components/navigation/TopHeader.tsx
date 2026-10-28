@@ -1,125 +1,112 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  Menu,
-  Sun,
-  Moon,
-  LogOut,
-  Wifi,
-  WifiOff,
-  ChevronDown,
-} from 'lucide-react'
+import { Menu, Sun, Moon, LogOut, Wifi, WifiOff, ChevronDown } from 'lucide-react'
 import { useAuthStore } from '../../stores/authStore'
 import { useThemeStore } from '../../stores/themeStore'
 import { useWebSocket } from '../../hooks/useWebSocket'
 import { BreadcrumbBar } from './BreadcrumbBar'
 import { GlobalSearch } from './GlobalSearch'
+import { DropdownMenu, IconButton } from '../ui'
 
 interface TopHeaderProps {
   onToggleSidebar: () => void
+  drawerOpen: boolean
 }
 
-export function TopHeader({ onToggleSidebar }: TopHeaderProps) {
+export function TopHeader({ onToggleSidebar, drawerOpen }: TopHeaderProps) {
   const { user, logout } = useAuthStore()
   const { theme, toggleTheme } = useThemeStore()
   const { isConnected } = useWebSocket()
   const navigate = useNavigate()
-  const [showUserMenu, setShowUserMenu] = useState(false)
 
   const handleLogout = () => {
     logout()
     navigate('/login')
   }
 
-  return (
-    <header className="h-16 border-b border-border-primary bg-bg-surface backdrop-blur-xl px-4 flex items-center justify-between sticky top-0 z-30 shrink-0">
-      {/* Left side: Sidebar Toggle & Breadcrumbs */}
-      <div className="flex items-center gap-4">
-        <button
-          onClick={onToggleSidebar}
-          className="p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-elevated transition-colors cursor-pointer"
-          title="Toggle Navigation Sidebar"
-        >
-          <Menu className="h-5 w-5" />
-        </button>
+  const roleLabel = (user?.role || 'guest').replace(/_/g, ' ')
 
-        <div className="hidden sm:block">
+  return (
+    <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between gap-3 bg-bg-primary px-4 shadow-[0_6px_12px_-6px_var(--sh-dark)] md:px-6">
+      <div className="flex min-w-0 items-center gap-3">
+        <IconButton label="Toggle navigation" aria-controls="app-sidebar" aria-expanded={drawerOpen} onClick={onToggleSidebar}>
+          <Menu className="h-5 w-5" />
+        </IconButton>
+        <div className="hidden min-w-0 sm:block">
           <BreadcrumbBar />
         </div>
       </div>
 
-      {/* Right side: Global Search, System Status, Theme Toggle, User Menu */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         <GlobalSearch />
 
-        {/* System Operational Status */}
-        <div className="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded-full bg-bg-secondary border border-border-primary text-xs">
+        <div
+          role="status"
+          className="neu-inset hidden items-center gap-2 px-3 py-1.5 text-xs lg:flex"
+          title={isConnected ? 'Realtime telemetry socket connected' : 'Realtime telemetry socket disconnected; retrying'}
+        >
           {isConnected ? (
             <>
-              <span className="h-2 w-2 rounded-full bg-cyan animate-pulse" />
-              <Wifi className="h-3 w-3 text-cyan" />
-              <span className="font-mono text-cyan">ROS2 Live</span>
+              <span className="h-2 w-2 rounded-full bg-success motion-safe:animate-pulse" aria-hidden="true" />
+              <Wifi className="h-3.5 w-3.5 text-success" aria-hidden="true" />
+              <span className="font-semibold text-success">Live</span>
             </>
           ) : (
             <>
-              <span className="h-2 w-2 rounded-full bg-amber" />
-              <WifiOff className="h-3 w-3 text-amber" />
-              <span className="font-mono text-text-secondary">Reconnecting</span>
+              <span className="h-2 w-2 rounded-full bg-amber" aria-hidden="true" />
+              <WifiOff className="h-3.5 w-3.5 text-amber" aria-hidden="true" />
+              <span className="font-semibold text-amber">Reconnecting</span>
             </>
           )}
         </div>
 
-        {/* Theme Toggle */}
-        <button
-          onClick={toggleTheme}
-          className="p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-elevated transition-colors cursor-pointer"
-          title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
-        >
+        <IconButton label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'} onClick={toggleTheme}>
           {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-        </button>
+        </IconButton>
 
-        {/* User Profile Dropdown */}
-        <div className="relative">
-          <button
-            onClick={() => setShowUserMenu((prev) => !prev)}
-            className="flex items-center gap-2 p-1.5 rounded-lg border border-border-primary bg-bg-secondary hover:bg-bg-elevated transition-colors cursor-pointer"
-          >
-            <div className="h-7 w-7 rounded-full bg-action-primary/20 text-action-primary flex items-center justify-center font-semibold text-xs border border-action-primary/30">
-              {user?.full_name?.charAt(0) || 'U'}
-            </div>
-            <div className="hidden md:block text-left pr-1">
-              <p className="text-xs font-semibold text-text-primary leading-none truncate max-w-[120px]">
-                {user?.full_name || 'Operator'}
-              </p>
-              <p className="text-[10px] text-text-secondary capitalize font-mono mt-0.5">
-                {user?.role || 'Guest'}
-              </p>
-            </div>
-            <ChevronDown className="h-3.5 w-3.5 text-text-secondary" />
-          </button>
-
-          {showUserMenu && (
-            <div className="absolute right-0 mt-2 w-56 glass-panel rounded-xl border border-border-primary shadow-2xl p-2 z-50 space-y-1">
-              <div className="p-2 border-b border-border-primary mb-1">
-                <p className="text-xs font-semibold text-text-primary">{user?.full_name}</p>
-                <p className="text-[11px] text-text-secondary truncate">{user?.email}</p>
+        <DropdownMenu
+          label="Account"
+          trigger={({ open, toggle, id }) => (
+            <button
+              type="button"
+              onClick={toggle}
+              aria-haspopup="menu"
+              aria-expanded={open}
+              aria-controls={open ? id : undefined}
+              className="neu-pressable flex min-h-10 items-center gap-2 rounded-[var(--radius-neu-sm)] py-1 pl-1.5 pr-2.5 cursor-pointer"
+            >
+              <span className="neu-inset flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-action-primary" aria-hidden="true">
+                {user?.full_name?.charAt(0).toUpperCase() || 'U'}
+              </span>
+              <span className="hidden text-left md:block">
+                <span className="block max-w-[120px] truncate text-xs font-semibold leading-none text-text-primary">{user?.full_name || 'Operator'}</span>
+                <span className="mt-1 block text-[10px] capitalize text-text-secondary">{roleLabel}</span>
+              </span>
+              <ChevronDown className="h-3.5 w-3.5 text-text-secondary" aria-hidden="true" />
+            </button>
+          )}
+        >
+          {(close) => (
+            <div className="space-y-1">
+              <div className="neu-inset mb-2 p-3">
+                <p className="truncate text-sm font-semibold text-text-primary">{user?.full_name}</p>
+                <p className="truncate text-xs text-text-secondary">{user?.email}</p>
+                <p className="mt-1 text-xs capitalize text-action-primary">{roleLabel}</p>
               </div>
-
-              <div className="px-2 py-1 flex items-center justify-between text-xs text-text-secondary">
-                <span>Role Permission</span>
-                <span className="font-mono text-cyan capitalize">{user?.role}</span>
-              </div>
-
               <button
-                onClick={handleLogout}
-                className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-error hover:bg-error/10 rounded-lg transition-colors cursor-pointer mt-2 border-t border-border-primary/50"
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  close()
+                  handleLogout()
+                }}
+                className="flex min-h-10 w-full items-center gap-2 rounded-[var(--radius-neu-sm)] px-3 text-sm font-medium text-error hover:shadow-[var(--neu-flat)] cursor-pointer"
               >
-                <LogOut className="h-3.5 w-3.5" />
-                Sign Out Platform
+                <LogOut className="h-4 w-4" aria-hidden="true" />
+                Sign out
               </button>
             </div>
           )}
-        </div>
+        </DropdownMenu>
       </div>
     </header>
   )

@@ -26,12 +26,15 @@ import {
   Settings,
   ChevronDown,
   ChevronRight,
+  X,
 } from 'lucide-react'
 import { useAuthStore } from '../../stores/authStore'
 import logoSrc from '../../assets/logo.png'
 
 interface SidebarProps {
   collapsed: boolean
+  drawerOpen: boolean
+  onCloseDrawer: () => void
 }
 
 export interface NavSection {
@@ -45,7 +48,7 @@ export interface NavSection {
   }[]
 }
 
-const navSections: NavSection[] = [
+export const navSections: NavSection[] = [
   {
     label: 'Overview',
     items: [
@@ -117,119 +120,120 @@ const navSections: NavSection[] = [
   },
 ]
 
-export function GlobalSidebar({ collapsed }: SidebarProps) {
+export function GlobalSidebar({ collapsed, drawerOpen, onCloseDrawer }: SidebarProps) {
   const { user } = useAuthStore()
   const location = useLocation()
-  const userRole = user?.role || 'administrator' // Default to admin if unassigned for dev
+  // Unknown/unassigned role gets the least-privileged navigation.
+  const userRole = user?.role || 'customer'
 
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    Overview: true,
-    Warehouse: true,
-    Inventory: true,
-    Orders: true,
-    Robotics: true,
-    Optimization: true,
-    Analytics: true,
-    Administration: true,
-  })
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({})
 
   const toggleSection = (label: string) => {
-    setExpandedSections((prev) => ({ ...prev, [label]: !prev[label] }))
+    setCollapsedSections((prev) => ({ ...prev, [label]: !prev[label] }))
   }
 
-  // Filter sections by user role
-  const visibleSections = navSections.filter((section) => {
-    if (!section.roles) return true
-    return section.roles.includes(userRole)
-  })
+  const visibleSections = navSections.filter((section) => !section.roles || section.roles.includes(userRole))
+
+  // On the mobile drawer we always show labels; the icon rail only applies at lg+.
+  const rail = collapsed
+
+  const closeOnEscape = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape' && drawerOpen) onCloseDrawer()
+  }
 
   return (
-    <aside
-      className={`border-r border-border-primary bg-bg-surface backdrop-blur-xl flex flex-col transition-all duration-300 z-40 shrink-0 ${
-        collapsed ? 'w-18' : 'w-64'
-      }`}
-    >
-      {/* Brand Header */}
-      <div className="h-16 border-b border-border-primary flex items-center px-4 gap-3 shrink-0">
-        <div className="h-9 w-9 rounded-lg bg-action-primary/10 border border-action-primary/40 flex items-center justify-center p-1 overflow-hidden shrink-0 shadow-sm shadow-action-primary/20">
-          <img src={logoSrc} alt="ARMS" className="w-full h-full object-contain" />
-        </div>
-        {!collapsed && (
-          <div className="truncate">
-            <h1 className="text-sm font-black text-text-primary leading-none flex items-center gap-1.5">
-              <span className="text-gradient-arms font-black tracking-wider">ARMS</span>
-              <span className="text-action-secondary text-[10px] font-mono font-bold bg-action-primary/10 border border-action-primary/30 px-1.5 py-0.5 rounded">OS</span>
-            </h1>
-            <p className="text-[9px] text-text-secondary font-mono tracking-widest uppercase mt-1">
-              Fleet Orchestration v4.2
-            </p>
+    <>
+      {drawerOpen && (
+        <div
+          aria-hidden="true"
+          onClick={onCloseDrawer}
+          className="fixed inset-0 z-30 bg-[color-mix(in_srgb,var(--c-base)_70%,transparent)] backdrop-blur-sm lg:hidden"
+        />
+      )}
+      <aside
+        id="app-sidebar"
+        onKeyDown={closeOnEscape}
+        aria-label="Primary"
+        className={`fixed inset-y-0 left-0 z-40 flex w-72 shrink-0 flex-col bg-bg-primary shadow-[var(--neu-float)] transition-transform duration-300 lg:static lg:translate-x-0 lg:shadow-[6px_0_14px_var(--sh-dark)] ${
+          drawerOpen ? 'translate-x-0' : '-translate-x-full'
+        } ${rail ? 'lg:w-[4.75rem]' : 'lg:w-64'}`}
+      >
+        {/* Brand Header */}
+        <div className="flex h-16 shrink-0 items-center gap-3 px-4">
+          <div className="neu-inset flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden p-1.5">
+            <img src={logoSrc} alt="ARMS" className="h-full w-full object-contain" />
           </div>
-        )}
-      </div>
+          <div className={`min-w-0 flex-1 ${rail ? 'lg:hidden' : ''}`}>
+            <p className="text-sm font-extrabold leading-none tracking-wider text-text-primary">ARMS</p>
+            <p className="mt-1 truncate text-[10px] font-medium uppercase tracking-widest text-text-secondary">Robotic Management</p>
+          </div>
+          <button
+            type="button"
+            onClick={onCloseDrawer}
+            aria-label="Close navigation"
+            className="neu-pressable flex h-9 w-9 items-center justify-center rounded-lg text-text-secondary lg:hidden cursor-pointer"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
 
-      {/* Nav List */}
-      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
-        {visibleSections.map((section) => {
-          const isExpanded = expandedSections[section.label] !== false
-          const visibleItems = section.items.filter(
-            (item) => !item.roles || item.roles.includes(userRole)
-          )
+        {/* Nav List */}
+        <nav aria-label="Main" className="flex-1 space-y-4 overflow-y-auto px-3 py-3">
+          {visibleSections.map((section) => {
+            const isExpanded = !collapsedSections[section.label]
+            const visibleItems = section.items.filter((item) => !item.roles || item.roles.includes(userRole))
+            if (visibleItems.length === 0) return null
+            const listId = `nav-${section.label}`
+            const singleSection = section.items.length === 1 && section.label === 'Overview'
 
-          if (visibleItems.length === 0) return null
+            return (
+              <div key={section.label} className="space-y-1.5">
+                {!singleSection && (
+                  <button
+                    type="button"
+                    onClick={() => toggleSection(section.label)}
+                    aria-expanded={isExpanded}
+                    aria-controls={listId}
+                    className={`flex w-full items-center justify-between rounded px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-text-secondary hover:text-text-primary cursor-pointer ${rail ? 'lg:hidden' : ''}`}
+                  >
+                    <span>{section.label}</span>
+                    {isExpanded ? <ChevronDown className="h-3 w-3" aria-hidden="true" /> : <ChevronRight className="h-3 w-3" aria-hidden="true" />}
+                  </button>
+                )}
 
-          return (
-            <div key={section.label} className="space-y-1">
-              {!collapsed && (
-                <button
-                  onClick={() => toggleSection(section.label)}
-                  className="w-full flex items-center justify-between px-2.5 py-1 text-[11px] font-semibold text-text-secondary uppercase tracking-wider hover:text-text-primary transition-colors cursor-pointer"
-                >
-                  <span>{section.label}</span>
-                  {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                </button>
-              )}
-
-              {(collapsed || isExpanded) && (
-                <div className="space-y-0.5">
+                <ul id={listId} className={`space-y-1.5 ${isExpanded ? '' : rail ? '' : 'hidden'}`}>
                   {visibleItems.map((item) => {
+                    // Match the longest route so /slotting doesn't also highlight /slotting/recommendations.
                     const isActive =
                       location.pathname === item.route ||
-                      (item.route !== '/dashboard' && location.pathname.startsWith(item.route))
+                      (location.pathname.startsWith(item.route + '/') &&
+                        !visibleSections.some((s) => s.items.some((o) => o.route.length > item.route.length && location.pathname.startsWith(o.route))))
 
                     return (
-                      <NavLink
-                        key={item.route}
-                        to={item.route}
-                        title={collapsed ? `${section.label}: ${item.label}` : undefined}
-                        className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
-                          isActive
-                            ? 'bg-action-primary/10 text-action-primary border border-action-primary/20 shadow-sm'
-                            : 'text-text-secondary hover:text-text-primary hover:bg-bg-elevated border border-transparent'
-                        }`}
-                      >
-                        <item.icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-action-primary' : ''}`} />
-                        {!collapsed && <span className="truncate">{item.label}</span>}
-                      </NavLink>
+                      <li key={item.route}>
+                        <NavLink
+                          to={item.route}
+                          aria-current={isActive ? 'page' : undefined}
+                          title={rail ? item.label : undefined}
+                          aria-label={rail ? item.label : undefined}
+                          className={`flex min-h-10 items-center gap-3 rounded-[var(--radius-neu-sm)] px-3 py-2 text-sm font-medium transition-all ${rail ? 'lg:justify-center lg:px-0' : ''} ${
+                            isActive
+                              ? 'bg-bg-secondary text-action-primary shadow-[var(--neu-pressed)]'
+                              : 'text-text-secondary hover:text-text-primary hover:shadow-[var(--neu-flat)]'
+                          }`}
+                        >
+                          <item.icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                          <span className={`truncate ${rail ? 'lg:sr-only' : ''}`}>{item.label}</span>
+                        </NavLink>
+                      </li>
                     )
                   })}
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </nav>
-
-      {/* Sidebar Footer */}
-      {!collapsed && (
-        <div className="p-3 border-t border-border-primary bg-bg-secondary/50 text-xs shrink-0">
-          <div className="flex items-center justify-between text-text-secondary">
-            <span className="text-[10px] font-mono">System State</span>
-            <span className="text-[10px] font-mono text-cyan flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-cyan animate-pulse" /> Operational
-            </span>
-          </div>
-        </div>
-      )}
-    </aside>
+                </ul>
+              </div>
+            )
+          })}
+        </nav>
+      </aside>
+    </>
   )
 }

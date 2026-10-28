@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Bot, Camera, Video, Radio, Edit3, Trash2, Globe } from 'lucide-react'
 import { api } from '../../api/client'
-import { Card, StatusBadge, LoadingSpinner, EmptyState, Button, Modal, Input } from '../../components/ui'
+import { Card, StatusBadge, LoadingSpinner, EmptyState, Button, Modal, Input, IconButton } from '../../components/ui'
 import type { Robot } from '../../types'
 
 export function RobotsPage() {
@@ -26,6 +26,7 @@ export function RobotsPage() {
   const [editIp, setEditIp] = useState('')
 
   const [isCameraActive, setIsCameraActive] = useState(true)
+  const [streamFailed, setStreamFailed] = useState(false)
 
   const { data: robots, isLoading } = useQuery({
     queryKey: ['robots'],
@@ -97,7 +98,7 @@ export function RobotsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-text-primary tracking-tight">Autonomous Robot Fleet</h1>
+          <h1 className="t-page-title">Autonomous Robot Fleet</h1>
           <p className="text-xs text-text-secondary">Monitor, manage and configure autonomous mobile robots (AMRs)</p>
         </div>
         <Button variant="secondary" icon={<Bot className="h-4 w-4" />} onClick={() => setIsRegisterOpen(true)}>
@@ -106,43 +107,44 @@ export function RobotsPage() {
       </div>
 
       {/* Live Camera Stream Viewer Card */}
-      <Card className="p-4 border border-cyan/30 bg-bg-surface/80">
+      <Card className="p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Video className="h-4 w-4 text-cyan" />
             <h3 className="text-sm font-bold text-text-primary">Live AMR Camera Feed ({currentIp}:8005)</h3>
-            <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded bg-success/10 text-success border border-success/30">
-              <Radio className="h-3 w-3 animate-pulse" /> LIVE STREAM
-            </span>
+            {isCameraActive && !streamFailed && (
+              <span className="neu-inset inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold text-success">
+                <Radio className="h-3 w-3 motion-safe:animate-pulse" aria-hidden="true" /> LIVE
+              </span>
+            )}
           </div>
           <Button
             variant="outline"
             className="text-xs py-1"
-            onClick={() => setIsCameraActive(!isCameraActive)}
+            onClick={() => {
+              setStreamFailed(false)
+              setIsCameraActive(!isCameraActive)
+            }}
           >
             <Camera className="h-3.5 w-3.5 mr-1" />
             {isCameraActive ? 'Pause Stream' : 'Resume Stream'}
           </Button>
         </div>
 
-        <div className="relative aspect-video max-h-[380px] w-full overflow-hidden rounded-lg bg-black border border-border-primary flex items-center justify-center">
-          {isCameraActive ? (
+        <div className="relative aspect-video max-h-[380px] w-full overflow-hidden neu-inset flex items-center justify-center">
+          {isCameraActive && !streamFailed && (
             <img
-              src="http://localhost:8000/api/v1/robot-communication/video_feed"
-              alt="AMR Live ROS 2 Camera Stream"
+              src="/api/v1/robot-communication/video_feed"
+              alt="AMR live camera stream"
               className="h-full w-full object-contain"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none'
-                const fallback = (e.target as HTMLImageElement).nextElementSibling
-                if (fallback) fallback.classList.remove('hidden')
-              }}
+              onError={() => setStreamFailed(true)}
             />
-          ) : null}
+          )}
 
-          <div className={`text-center space-y-2 p-6 ${isCameraActive ? 'hidden' : ''}`}>
-            <Camera className="h-10 w-10 text-text-secondary mx-auto animate-pulse" />
+          <div className={`space-y-2 p-6 text-center ${isCameraActive && !streamFailed ? 'hidden' : ''}`}>
+            <Camera className="mx-auto h-10 w-10 text-text-secondary" aria-hidden="true" />
             <p className="text-xs font-mono text-text-secondary">
-              {isCameraActive ? `Waiting for camera frame stream from ${currentIp}:8005...` : 'Camera feed paused by operator.'}
+              {!isCameraActive ? 'Camera feed paused.' : `No camera frames received from ${currentIp}:8005.`}
             </p>
             <p className="text-[10px] text-text-secondary font-mono">
               ROS Topic: /camera/image_raw (sensor_msgs/Image)
@@ -159,7 +161,7 @@ export function RobotsPage() {
             <Card key={robot.id} className="space-y-4 relative group">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-action-primary/10 border border-action-primary/30 flex items-center justify-center text-action-primary">
+                  <div className="neu-inset flex h-10 w-10 items-center justify-center text-action-primary">
                     <Bot className="h-5 w-5" />
                   </div>
                   <div>
@@ -170,20 +172,12 @@ export function RobotsPage() {
                 <div className="flex items-center gap-2">
                   <StatusBadge status={robot.status} />
                   <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => openEditModal(robot)}
-                      className="p-1 rounded text-text-secondary hover:text-cyan hover:bg-bg-hover transition-colors"
-                      title="Edit Robot IP & Configuration"
-                    >
+                    <IconButton label={`Edit ${robot.name}`} className="h-9 w-9" onClick={() => openEditModal(robot)}>
                       <Edit3 className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => setDeletingRobot(robot)}
-                      className="p-1 rounded text-text-secondary hover:text-error hover:bg-bg-hover transition-colors"
-                      title="Delete Robot"
-                    >
+                    </IconButton>
+                    <IconButton label={`Delete ${robot.name}`} className="h-9 w-9 hover:text-error" onClick={() => setDeletingRobot(robot)}>
                       <Trash2 className="h-4 w-4" />
-                    </button>
+                    </IconButton>
                   </div>
                 </div>
               </div>

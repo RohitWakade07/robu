@@ -38,8 +38,8 @@ export function BreadcrumbBar() {
   const pathnames = location.pathname.split('/').filter((x) => x)
 
   return (
-    <nav className="flex items-center gap-1.5 text-xs text-text-secondary overflow-x-auto py-1">
-      <Link to="/dashboard" className="flex items-center gap-1 hover:text-text-primary transition-colors shrink-0">
+    <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 overflow-x-auto py-1 text-xs text-text-secondary">
+      <Link to="/dashboard" aria-label="Dashboard" className="flex shrink-0 items-center gap-1 rounded hover:text-text-primary transition-colors">
         <Home className="h-3.5 w-3.5" />
       </Link>
       {pathnames.map((value, index) => {
@@ -49,9 +49,9 @@ export function BreadcrumbBar() {
 
         return (
           <div key={to} className="flex items-center gap-1.5 shrink-0">
-            <ChevronRight className="h-3 w-3 text-border-primary" />
+            <ChevronRight className="h-3 w-3 text-text-muted" aria-hidden="true" />
             {isLast ? (
-              <span className="font-semibold text-text-primary capitalize">{label}</span>
+              <span aria-current="page" className="font-semibold text-text-primary capitalize">{label}</span>
             ) : (
               <Link to={to} className="hover:text-text-primary transition-colors capitalize">
                 {label}
